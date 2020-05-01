@@ -1,0 +1,90 @@
+<udebs>
+
+<config>
+    <name>connectfour</name>
+    <immutable>True</immutable>
+    <logging>False</logging>
+    <revert>10000</revert>
+</config>
+
+<map>
+    <dim>
+        <x>4</x>
+        <y>4</y>
+    </dim>
+</map>
+
+<definitions>
+    <stats>
+        <ACT />
+    </stats>
+    <strings>
+        <result />
+        <token />
+    </strings>
+</definitions>
+
+<entities>
+    <result immutable="False" />
+
+    <player />
+
+    <xPlayer immutable="False">
+        <group>player</group>
+        <ACT>2</ACT>
+        <token>x</token>
+    </xPlayer>
+
+    <oPlayer immutable="False">
+        <group>player</group>
+        <ACT>1</ACT>
+        <token>o</token>
+    </oPlayer>
+
+    <x />
+    <o />
+
+    <!-- Forces turn order -->
+    <turn>
+        <require>$caster.STAT.ACT &gt;= 2</require>
+        <effect>
+            <i>$caster ACT -= 2</i>
+            <i>ALL.player ACT += 1</i>
+        </effect>
+    </turn>
+
+    <!-- Checks for winner -->
+    <checkend>
+        <effect>result result REPLACE (ENDSTATE $mapobject $token $new)</effect>
+    </checkend>
+
+    <drop>
+        <group>
+            <i>turn</i>
+            <i>checkend</i>
+        </group>
+        <require>
+            <i>x = $target.XLOC</i>
+            <i>map = $target.MAPNAME</i>
+            <i>($x 0 $map).NAME == empty</i>
+        </require>
+        <effect>
+            <i>mapobject = $target.MAP</i>
+            <i>token = $caster.STAT.token</i>
+            <i>new = ($x (BOTTOM $mapobject $x) $map)</i>
+            <i>$token RECRUIT $new</i>
+        </effect>
+    </drop>
+
+    <!-- board control scripts -->
+    <reset>
+        <effect>
+            <i>empty MOVE (FILL (0 0))</i>
+            <i>result result REPLACE ''</i>
+            <i>xPlayer ACT REPLACE 2</i>
+            <i>oPlayer ACT REPLACE 1</i>
+        </effect>
+    </reset>
+
+</entities>
+</udebs>
