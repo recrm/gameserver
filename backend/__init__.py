@@ -1,1 +1,1 @@
-from .core import app
+from .index import app
