@@ -1,6 +1,6 @@
 import React from "react";
 
-const urlroot = "http://localhost:8080/connect4"
+const urlroot = "https://udebs.ak-rc.net/connect4"
 
 function Square(props) {
     let name = "grid-square";
