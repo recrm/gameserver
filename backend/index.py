@@ -8,7 +8,6 @@ if os.environ.get("ENV") == "dev":
 else:
   CORS = None
 
-from flask_cors import CORS
 from .connect4.game import Connect4
 from .blueprint_constructor import new_blueprint
 
