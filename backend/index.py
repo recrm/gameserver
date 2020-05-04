@@ -3,7 +3,7 @@ import logging
 
 from flask import Flask
 
-if os.environ.get("ENV") == "dev":
+if os.environ.get("REACT_APP_ENV") == "dev":
   from flask_cors import CORS
 else:
   CORS = None

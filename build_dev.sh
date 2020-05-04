@@ -1,6 +1,6 @@
 #!/bin/bash
 
-export ENV="dev"
+export REACT_APP_ENV="dev"
 
 trap "kill 0" EXIT
 

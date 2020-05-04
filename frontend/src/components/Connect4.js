@@ -61,8 +61,6 @@ class Board extends React.Component {
       color = "tie";
     }
 
-    console.log(this.props.hints);
-
     return (
       <Square
         value={this.props.squares[i] === "_" ? null : this.props.squares[i]}
