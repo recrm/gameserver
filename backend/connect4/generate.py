@@ -42,7 +42,7 @@ class Connect4(State):
             if debug:
                 print(value, turns)
 
-            if value is None:
+            if value is None or value == "":
                 results = []
                 func = (max if maximizer else min)
 

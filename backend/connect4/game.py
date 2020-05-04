@@ -80,11 +80,12 @@ def COMPUTER(state, player):
     # Now we figure out what column was dropped in.
     i = 0
     for x,y in zip(current, choice):
-        i +=1
         if x != y:
             break
+        i +=1
 
-    col = (i%5) - 1
+    cols = state.map["map"].x + 1
+    col = (i % cols)
     return (col, 0)
 
 class Connect4_core(Core):

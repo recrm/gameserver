@@ -2,6 +2,8 @@ import React from "react";
 import { config } from "../config";
 
 const urlroot = `${config.url}/connect4`
+const map_rows = 4
+const map_columns = 5
 
 function Square(props) {
     let name = "grid-square";
@@ -66,6 +68,7 @@ class Board extends React.Component {
         value={this.props.squares[i] === "_" ? null : this.props.squares[i]}
         onClick={() => this.props.onClick(i)}
         color={this.props.hints ? color : null}
+        key={i}
       />
     );
   }
@@ -88,32 +91,20 @@ class Board extends React.Component {
       obj[row[0]] = row[1]
     });
 
+    let rows = [];
+    let i = 0;
+    for (let k = 0; k < map_rows; k++) {
+      let cols = [];
+      for (let j = 0; j < map_columns; j++) {
+        cols.push(this.renderSquare(i++, obj))
+      }
+      rows.push(<div className="grid-row" key={k}>{cols}</div>)
+      i++;
+    }
+
     return (
       <div className="grid">
-        <div className="grid-row">
-          {this.renderSquare(0, obj)}
-          {this.renderSquare(1, obj)}
-          {this.renderSquare(2, obj)}
-          {this.renderSquare(3, obj)}
-        </div>
-        <div className="grid-row">
-          {this.renderSquare(5, obj)}
-          {this.renderSquare(6, obj)}
-          {this.renderSquare(7, obj)}
-          {this.renderSquare(8, obj)}
-        </div>
-        <div className="grid-row">
-          {this.renderSquare(10, obj)}
-          {this.renderSquare(11, obj)}
-          {this.renderSquare(12, obj)}
-          {this.renderSquare(13, obj)}
-        </div>
-        <div className="grid-row">
-          {this.renderSquare(15, obj)}
-          {this.renderSquare(16, obj)}
-          {this.renderSquare(17, obj)}
-          {this.renderSquare(18, obj)}
-        </div>
+        {rows}
       </div>
     );
   }
@@ -145,7 +136,7 @@ export class Connect4 extends React.Component {
 
   onBoardClick(i) {
     if (this.state.endstate === null) {
-      const row = Math.floor(i % 5);
+      const row = Math.floor(i % (map_columns + 1));
       const url = `${urlroot}/${this.state.gameid}/update`;
       this.updateState(url, {
         method: "post",
