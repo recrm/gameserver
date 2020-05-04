@@ -36,6 +36,8 @@ function Info(props) {
       title = "Tie";
       next = "tie";
       break;
+    default:
+      // do nothing
   }
 
   return (
