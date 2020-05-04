@@ -1,6 +1,7 @@
 import React from "react";
+import { config } from "../config";
 
-const urlroot = "https://udebs.ak-rc.net/connect4"
+const urlroot = `${config.url}/connect4`
 
 function Square(props) {
     let name = "grid-square";
@@ -9,11 +10,40 @@ function Square(props) {
         name += props.color
     }
 
+    let inner = "circle ";
+    inner += props.value;
+
     return (
         <button className={name} onClick={props.onClick}>
-            {props.value}
+            <div className={inner}></div>
         </button>
     )
+}
+
+function Info(props) {
+  let next = props.xNext ? "x" : "o";
+  let title = "Next";
+  switch (props.endstate) {
+    case 1:
+      title = "Winner";
+      next = "x";
+      break;
+    case -1:
+      next = "o";
+      title = "Winner";
+      break;
+    case 0:
+      title = "Tie";
+      next = "tie";
+      break;
+  }
+
+  return (
+    <div className="game-info">
+      <h2>{title}</h2>
+      <Square value={next} />
+    </div>
+  )
 }
 
 class Board extends React.Component {
@@ -22,18 +52,20 @@ class Board extends React.Component {
     var color;
 
     if (c === 1) {
-      color = "xwin";
+      color = "x";
     } else if (c === -1) {
-      color = "owin";
+      color = "o";
     } else if (c === 0) {
       color = "tie";
     }
+
+    console.log(this.props.hints);
 
     return (
       <Square
         value={this.props.squares[i] === "_" ? null : this.props.squares[i]}
         onClick={() => this.props.onClick(i)}
-        color={color}
+        color={this.props.hints ? color : null}
       />
     );
   }
@@ -93,6 +125,7 @@ export class Connect4 extends React.Component {
     gameid: null,
     xNext: true,
     error: false,
+    hints: false,
   }
 
   updateState(url, request) {
@@ -129,6 +162,23 @@ export class Connect4 extends React.Component {
     }
   }
 
+  onAiClick(i) {
+    if (this.state.endstate === null) {
+      const url = `${urlroot}/${this.state.gameid}/update`;
+      this.updateState(url, {
+        method: "post",
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          caster: this.state.xNext ? "xPlayer" : "oPlayer",
+          move: "ai"
+        })
+      });
+    }
+  }
+
   onUndoClick() {
     const url = `${urlroot}/${this.state.gameid}/revert`;
     this.updateState(url);
@@ -140,6 +190,12 @@ export class Connect4 extends React.Component {
         xNext: false,
     });
     this.updateState(url);
+  }
+
+  onHintCheck(event) {
+    this.setState({
+      hints: event.target.checked,
+    })
   }
 
   componentDidMount() {
@@ -166,32 +222,25 @@ export class Connect4 extends React.Component {
     else {
       return (
         <div className="game-body">
-          <h1>Connect 4</h1>
-          <div className="game">
-            <div className="game-board">
-              <Board squares={this.state.current} onClick={this.onBoardClick.bind(this)} children={this.state.children} />
-              <div>
-                <button className="game-button" onClick={() => this.onUndoClick()}>Undo</button>
-                <button className="game-button" onClick={() => this.onResetClick()}>Reset</button>
-              </div>
-            </div>
-            <div className="game-info">
-              <div className="results-data">
-                <p className="info">Ideal: {this.state.value}</p>
-                <p className="info">Turns: {this.state.turns}</p>
-                <p className="info">Current: {this.state.endstate}</p>
-              </div>
-              <div>
-                <h2>Legend</h2>
-                <div className="grid-row">
-                  <div className="xwin grid-square">x</div>
-                  <div className="owin grid-square">o</div>
-                  <div className="tie grid-square">t</div>
-                </div>
-              </div>
+          <div className="game-board">
+            <h1>Connect 4</h1>
+            <Board squares={this.state.current} onClick={this.onBoardClick.bind(this)} children={this.state.children} hints={this.state.hints} />
+            <div>
+              <button className="game-button" onClick={() => this.onUndoClick()}>Undo</button>
+              <button className="game-button" onClick={() => this.onResetClick()}>Reset</button>
+              <button className="game-button" onClick={() => this.onAiClick()}>AI</button>
+              <div>Show Hints <input type="checkbox" onChange={(event) => this.onHintCheck(event)} /></div>
             </div>
           </div>
-          <p>{this.state.gameid}</p>
+          <Info xNext={this.state.xNext} endstate={this.state.endstate} />
+          {/*
+          <div className="results-data">
+            <p className="info">Ideal: {this.state.value}</p>
+            <p className="info">Turns: {this.state.turns}</p>
+            <p className="info">Current: {this.state.endstate}</p>
+            <p>Gameid: {this.state.gameid}</p>
+          </div>
+          */}
         </div>
       );
     }

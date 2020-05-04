@@ -76,6 +76,14 @@
         </effect>
     </drop>
 
+    <!-- Computer AI -->
+    <ai>
+        <effect>
+            <i>loc = (COMPUTER $caster.NAME)</i>
+            <i>$caster CAST $loc drop</i>
+        </effect>
+    </ai>
+
     <!-- board control scripts -->
     <reset>
         <effect>

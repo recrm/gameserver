@@ -1,4 +1,6 @@
 
+export ENV="prod"
+
 # build udebs
 rm -R /var/www/udebs/
 mkdir /var/www/udebs

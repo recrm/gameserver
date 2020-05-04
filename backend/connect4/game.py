@@ -1,6 +1,7 @@
 import udebs
 import pathlib
 import json
+import random
 
 from ..core import Core, Games
 
@@ -43,19 +44,55 @@ def ENDSTATE(map_, token, loc):
 path_data = pathlib.Path(__file__).parent / "data.json"
 path_config = pathlib.Path(__file__).parent / "config.xml"
 
+with open(path_data) as f:
+    data = json.load(f)
+
+@udebs.register({"args": ["self", "$1"]})
+def COMPUTER(state, player):
+    current = state.pState()
+    canon = min([current, *(f(current) for f in state.symmetries)])
+
+    score = 1 if player == "xPlayer" else -1
+
+    replies = []
+    # Check if any move is winning
+    for child in data[canon]["children"]:
+        if data[child]["result"] == score:
+            replies.append(child)
+
+    # If there are no winning moves, consider tie moves
+    if len(replies) == 0:
+        for child in data[canon]["children"]:
+            if data[child]["result"] == 0:
+                replies.append(child)
+
+    # Now filter symettries to only those that we need.
+    final = []
+    for reply in replies:
+        for f in state.symmetries:
+            new = f(reply)
+            if state.stringDistance(current, new) == 1:
+                final.append(new)
+
+    # Cool now pick one
+    choice = random.choice(final)
+
+    # Now we figure out what column was dropped in.
+    i = 0
+    for x,y in zip(current, choice):
+        i +=1
+        if x != y:
+            break
+
+    col = (i%5) - 1
+    return (col, 0)
+
 class Connect4_core(Core):
-    results_data = None
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-
-        if Connect4_core.results_data is None:
-            with open(path_data) as f:
-                Connect4_core.results_data = json.load(f)
+    results_data = data
 
     @property
     def symmetries(self):
-        return [self.symmetry_x]
+        return [self.identity, self.symmetry_x]
 
 class Connect4(Games):
     def createTemplate(self):

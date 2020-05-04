@@ -23,6 +23,13 @@ body {
   border: 1px solid #999;
 }
 
+.circle {
+    height: 40px;
+    width: 40px;
+    border-radius: 50%;
+    background: #fff;
+}
+
 .header {
   border: 1px solid #999;
   height: 100px;
@@ -62,9 +69,6 @@ body {
 
 .game-body {
   text-align: center;
-}
-
-.game {
   margin: 0 0 0 50px;
   display: flex;
   flex-direction: row;
@@ -77,30 +81,29 @@ body {
   height: 34px;
   margin: 5px 2.5px;
   padding: 0;
-  width: 40%;
+  width: 25%;
 }
 
 .game-info {
-  margin-left: 20px;
-  text-align: left;
-}
-
-.game-info h2 {
-  text-align: center;
+  margin-top: 40px;
+  margin-left: 30px;
 }
 
 .results-data {
-
+  margin-left: 50px;
+  text-align: left;
 }
 
-.xwin {
-  background: #6b5b95;
-}
-
-.owin {
+.o {
   background: #d64161;
+}
+
+.x {
+  background: #303030;
 }
 
 .tie {
   background: #feb236;
 }
+
+

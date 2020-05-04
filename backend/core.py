@@ -47,6 +47,10 @@ class Core(Instance):
         return "|".join("".join(x) for x in zip(*new))
 
     @staticmethod
+    def identity(split):
+        return split
+
+    @staticmethod
     def stringDistance(one, two):
         count = 0
         for x, y in zip_longest(one, two):
@@ -72,13 +76,13 @@ class Core(Instance):
 
     def to_json(self):
         current = self.pState()
-        canon = min([current, *(f(current) for f in self.symmetries)])
+        canon = min(f(current) for f in self.symmetries)
         endstate = self.getStat("result", "result")
 
         children = {}
         for child in self.results_data[canon]["children"]:
             # create all symetries
-            syms = [child, *(f(child) for f in self.symmetries)]
+            syms = [f(child) for f in self.symmetries]
 
             # Get value for this symettry set
             value = self.results_data[min(syms)]
