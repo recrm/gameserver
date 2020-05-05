@@ -137,35 +137,30 @@ export class Connect4 extends React.Component {
   onBoardClick(i) {
     if (this.state.endstate === null) {
       const row = Math.floor(i % (map_columns + 1));
+
+      let formData = new FormData();
+      formData.append("caster", this.state.xNext ? "xPlayer" : "oPlayer");
+      formData.append("move", "drop");
+      formData.append("target", [row, 0, "map"]);
+
       const url = `${urlroot}/${this.state.gameid}/update`;
       this.updateState(url, {
         method: "post",
-        headers: {
-          'Accept': 'application/json',
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          caster: this.state.xNext ? "xPlayer" : "oPlayer",
-          target: [row, 0, "map"],
-          move: "drop"
-        })
+        body: formData,
       });
     }
   }
 
   onAiClick(i) {
     if (this.state.endstate === null) {
+      let formData = new FormData();
+      formData.append("caster", this.state.xNext ? "xPlayer" : "oPlayer");
+      formData.append("move", "ai");
+
       const url = `${urlroot}/${this.state.gameid}/update`;
       this.updateState(url, {
         method: "post",
-        headers: {
-          'Accept': 'application/json',
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          caster: this.state.xNext ? "xPlayer" : "oPlayer",
-          move: "ai"
-        })
+        body: formData
       });
     }
   }

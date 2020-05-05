@@ -50,21 +50,19 @@ with open(path_data) as f:
 @udebs.register({"args": ["self", "$1"]})
 def COMPUTER(state, player):
     current = state.pState()
-    canon = min([current, *(f(current) for f in state.symmetries)])
-
+    canon = min(f(current) for f in state.symmetries)
     score = 1 if player == "xPlayer" else -1
 
+    # Get all possible replies.
     replies = []
-    # Check if any move is winning
-    for child in data[canon]["children"]:
-        if data[child]["result"] == score:
-            replies.append(child)
-
-    # If there are no winning moves, consider tie moves
-    if len(replies) == 0:
+    for _i in (1, 0, -1):
         for child in data[canon]["children"]:
-            if data[child]["result"] == 0:
+            if data[child]["result"] == (score * _i):
                 replies.append(child)
+
+        # We only want the best, break if we have found any.
+        if len(replies) > 0:
+            break
 
     # Now filter symettries to only those that we need.
     final = []
@@ -86,7 +84,7 @@ def COMPUTER(state, player):
 
     cols = state.map["map"].x + 1
     col = (i % cols)
-    return (col, 0)
+    return (col, 0, "map")
 
 class Connect4_core(Core):
     results_data = data

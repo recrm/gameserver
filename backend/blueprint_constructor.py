@@ -7,10 +7,12 @@ def new_blueprint(name, Games):
     storage = Games()
 
     def safeGet(game, value):
-        raw = request.json.get(value, "empty")
-        if isinstance(raw, list):
-            if raw[-1] in game.map:
-                raw = tuple(raw)
+        raw = request.form.get(value, "empty")
+        if "," in raw:
+            split = raw.split(",")
+            split[0] = int(split[0])
+            split[1] = int(split[1])
+            raw = tuple(split)
 
         return raw
 
