@@ -3,7 +3,7 @@ import { config } from "../config";
 
 const urlroot = `${config.url}/connect4`
 const map_rows = 4
-const map_columns = 5
+const map_columns = 4
 
 function Square(props) {
     let name = "grid-square";

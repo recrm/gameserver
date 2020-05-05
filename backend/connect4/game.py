@@ -15,11 +15,10 @@ def BOTTOM(map_, x):
 def ENDSTATE(map_, token, loc):
     maxim = 0
 
-    for x_, y_ in ((1,0), (0,1), (1,1)):
+    for x_, y_ in ((1,0), (0,1), (1,1), (1, -1)):
         count = -1
         for d_ in (1, -1):
-            x_ *= d_
-            y_ *= d_
+            x_, y_ = x * d, y * d
 
             new, centre = token, loc
             while new == token:
