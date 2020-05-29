@@ -3,7 +3,7 @@ from flask import request, Blueprint, current_app
 from functools import wraps
 
 def new_blueprint(name, Games):
-    app = Blueprint("connect4", __name__)
+    app = Blueprint(name, __name__)
     storage = Games()
 
     def safeGet(game, value):
@@ -66,11 +66,12 @@ def new_blueprint(name, Games):
             current_app.logger.info(f"game not updated: {gameid}")
             current_app.logger.info(f"{caster} {target} {move}")
 
-        return {
+        v = {
             "gameid": gameid,
             "accepted": update,
             "state": game.to_json(),
         }
+        return v
 
     @app.route("/<gameid>/revert", methods=["GET"])
     @checkid

@@ -9,8 +9,8 @@
 
 <map>
     <dim>
-        <x>4</x>
-        <y>4</y>
+        <x>5</x>
+        <y>5</y>
     </dim>
 </map>
 
@@ -19,14 +19,11 @@
         <ACT />
     </stats>
     <strings>
-        <result />
         <token />
     </strings>
 </definitions>
 
 <entities>
-    <result immutable="False" />
-
     <player />
 
     <xPlayer immutable="False">
@@ -54,14 +51,22 @@
     </turn>
 
     <!-- Checks for winner -->
-    <checkend>
-        <effect>result result REPLACE (ENDSTATE $mapobject $token $new)</effect>
-    </checkend>
+    <win>
+        <require>
+            <i>value = (ENDSTATE $caster.MAP $caster.NAME $caster.LOC)</i>
+            <i>$value != None</i>
+        </require>
+        <effect>EXIT $value</effect>
+    </win>
+
+    <checkwin>
+        <effect>$new ACTION win</effect>
+    </checkwin>
 
     <drop>
         <group>
             <i>turn</i>
-            <i>checkend</i>
+            <i>checkwin</i>
         </group>
         <require>
             <i>x = $target.XLOC</i>
@@ -69,26 +74,23 @@
             <i>($x 0 $map).NAME == empty</i>
         </require>
         <effect>
-            <i>mapobject = $target.MAP</i>
-            <i>token = $caster.STAT.token</i>
-            <i>new = ($x (BOTTOM $mapobject $x) $map)</i>
-            <i>$token RECRUIT $new</i>
+            <i>new = ($x (BOTTOM $target.MAP $x) $map)</i>
+            <i>$caster.STAT.token RECRUIT $new</i>
         </effect>
     </drop>
 
     <!-- Computer AI -->
     <ai>
-        <effect>
+        <require>
             <i>loc = (COMPUTER $caster.NAME)</i>
             <i>$caster CAST $loc drop</i>
-        </effect>
+        </require>
     </ai>
 
     <!-- board control scripts -->
     <reset>
         <effect>
             <i>empty MOVE (FILL (0 0))</i>
-            <i>result result REPLACE ''</i>
             <i>xPlayer ACT REPLACE 2</i>
             <i>oPlayer ACT REPLACE 1</i>
         </effect>

@@ -1,12 +1,12 @@
-from udebs.instance import Instance
+from udebs.treesearch import State
 from abc import abstractmethod, ABC
 import copy
-import json
 from itertools import zip_longest
+from expiringdict import ExpiringDict
 
 class Games(ABC):
     def __init__(self):
-        self.games = {}
+        self.games = ExpiringDict(max_len=50, max_age_seconds=3600)
         self.template = self.createTemplate()
 
     @abstractmethod
@@ -16,7 +16,7 @@ class Games(ABC):
     def createNew(self):
         return copy.copy(self.template)
 
-class Core(Instance):
+class Core(State):
     #---------------------------------------------------
     #                 Main Symmetries                  -
     #---------------------------------------------------
@@ -58,10 +58,17 @@ class Core(Instance):
                 count +=1
         return count
 
+    def results_data(self, value):
+        return NotImplementedError
+
     #---------------------------------------------------
     #                 pState Management                -
     #---------------------------------------------------
-    def pState(self):
+    def __str__(self):
+        rState = self.rState()
+        return min(f(rState) for f in self.symmetries)
+
+    def rState(self):
         map_ = self.getMap()
         buf = ''
         for y in range(map_.y):
@@ -75,28 +82,17 @@ class Core(Instance):
         return buf.rstrip("|")
 
     def to_json(self):
-        current = self.pState()
-        canon = min(f(current) for f in self.symmetries)
-        endstate = self.getStat("result", "result")
-
-        children = {}
-        for child in self.results_data[canon]["children"]:
-            # create all symetries
-            syms = [f(child) for f in self.symmetries]
-
-            # Get value for this symettry set
-            value = self.results_data[min(syms)]
-
-            # Add all symmetries that are on the current path.
-            for rep in syms:
-                if self.stringDistance(current, rep) == 1:
-                    children[rep] = value
+        endstate = self.endState()
+        if endstate is None:
+            children = {i.rState(): -i.results_data() for i,e in self.substates(self.fullChildren())}
+        else:
+            children = {}
 
         return {
-            "current": current,
-            "value": self.results_data[canon],
+            "current": self.rState(),
+            "value": self.results_data(),
             "children": children,
-            "endstate": None if endstate == "" else endstate
+            "endstate": endstate
         }
 
     #---------------------------------------------------

@@ -102,8 +102,16 @@ body {
   background: #303030;
 }
 
+.lose {
+  background: #d2222d;
+}
+
+.win {
+  background: #007000;
+}
+
 .tie {
-  background: #feb236;
+  background: #ffbf00;
 }
 
 

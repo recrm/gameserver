@@ -1,9 +1,4 @@
 import React from "react";
-import { config } from "../config";
-
-const urlroot = `${config.url}/connect4`
-const map_rows = 4
-const map_columns = 4
 
 function Square(props) {
     let name = "grid-square";
@@ -16,7 +11,7 @@ function Square(props) {
     inner += props.value;
 
     return (
-        <button className={name} onClick={props.onClick}>
+        <button disabled={props.disable} className={name} onClick={props.onClick}>
             <div className={inner}></div>
         </button>
     )
@@ -46,6 +41,7 @@ function Info(props) {
     <div className="game-info">
       <h2>{title}</h2>
       <Square value={next} />
+      <h2>{props.thinking ? "Thinking" : ""}</h2>
     </div>
   )
 }
@@ -56,9 +52,9 @@ class Board extends React.Component {
     var color;
 
     if (c === 1) {
-      color = "x";
+      color = "win";
     } else if (c === -1) {
-      color = "o";
+      color = "lose";
     } else if (c === 0) {
       color = "tie";
     }
@@ -68,6 +64,7 @@ class Board extends React.Component {
         value={this.props.squares[i] === "_" ? null : this.props.squares[i]}
         onClick={() => this.props.onClick(i)}
         color={this.props.hints ? color : null}
+        disable={this.props.thinking}
         key={i}
       />
     );
@@ -83,7 +80,7 @@ class Board extends React.Component {
         i +=1;
       }
 
-      return [i, this.props.children[key].result];
+      return [i, this.props.children[key]];
     })
 
     let obj = {}
@@ -93,9 +90,9 @@ class Board extends React.Component {
 
     let rows = [];
     let i = 0;
-    for (let k = 0; k < map_rows; k++) {
+    for (let k = 0; k < this.props.map_y; k++) {
       let cols = [];
-      for (let j = 0; j < map_columns; j++) {
+      for (let j = 0; j < this.props.map_x; j++) {
         cols.push(this.renderSquare(i++, obj))
       }
       rows.push(<div className="grid-row" key={k}>{cols}</div>)
@@ -117,33 +114,46 @@ export class Connect4 extends React.Component {
     xNext: true,
     error: false,
     hints: false,
+    thinking: false,
   }
 
   updateState(url, request) {
+    this.setState({thinking: true});
     fetch(url, request)
       .then(response => response.json())
-      .then(data => this.setState({
-        gameid: data.gameid,
-        value: data.state.value.result,
-        turns: data.state.value.turns,
-        current: Array.from(data.state.current),
-        children: data.state.children,
-        xNext: data.accepted ? !this.state.xNext : this.state.xNext,
-        endstate: data.state.endstate,
-      }))
-      .catch(error => this.setState({error: true}));
+      .then(data => {
+        if (data.message !== undefined) {
+          console.error(data.message);
+          if (data.message === "Game id not found") {
+            this.setState({xNext: true});
+            this.updateState(`${this.props.urlroot}/new`);
+          } else  {
+            this.setState({error:true, thinking: false});
+          }
+        } else {
+          this.setState({
+            gameid: data.gameid,
+            value: data.state.value,
+            current: Array.from(data.state.current),
+            children: data.state.children,
+            xNext: data.accepted ? !this.state.xNext : this.state.xNext,
+            endstate: data.state.endstate,
+            thinking: false,
+          });
+        }
+      })
   }
 
   onBoardClick(i) {
     if (this.state.endstate === null) {
-      const row = Math.floor(i % (map_columns + 1));
+      const row = Math.floor(i % (this.props.map_x + 1));
 
       let formData = new FormData();
       formData.append("caster", this.state.xNext ? "xPlayer" : "oPlayer");
       formData.append("move", "drop");
       formData.append("target", [row, 0, "map"]);
 
-      const url = `${urlroot}/${this.state.gameid}/update`;
+      const url = `${this.props.urlroot}/${this.state.gameid}/update`;
       this.updateState(url, {
         method: "post",
         body: formData,
@@ -157,7 +167,7 @@ export class Connect4 extends React.Component {
       formData.append("caster", this.state.xNext ? "xPlayer" : "oPlayer");
       formData.append("move", "ai");
 
-      const url = `${urlroot}/${this.state.gameid}/update`;
+      const url = `${this.props.urlroot}/${this.state.gameid}/update`;
       this.updateState(url, {
         method: "post",
         body: formData
@@ -166,15 +176,13 @@ export class Connect4 extends React.Component {
   }
 
   onUndoClick() {
-    const url = `${urlroot}/${this.state.gameid}/revert`;
+    const url = `${this.props.urlroot}/${this.state.gameid}/revert`;
     this.updateState(url);
   }
 
   onResetClick() {
-    const url = `${urlroot}/${this.state.gameid}/reset`;
-    this.setState({
-        xNext: false,
-    });
+    const url = `${this.props.urlroot}/${this.state.gameid}/reset`;
+    this.setState({xNext: false});
     this.updateState(url);
   }
 
@@ -190,9 +198,9 @@ export class Connect4 extends React.Component {
 
     let url;
     if (gameid === null) {
-      url = `${urlroot}/new`;
+      url = `${this.props.urlroot}/new`;
     } else {
-      url = `${urlroot}/${gameid}`;
+      url = `${this.props.urlroot}/${gameid}`;
     }
 
     this.updateState(url)
@@ -210,23 +218,23 @@ export class Connect4 extends React.Component {
         <div className="game-body">
           <div className="game-board">
             <h1>Connect 4</h1>
-            <Board squares={this.state.current} onClick={this.onBoardClick.bind(this)} children={this.state.children} hints={this.state.hints} />
+            <Board
+              squares={this.state.current}
+              onClick={this.onBoardClick.bind(this)}
+              children={this.state.children}
+              hints={this.state.hints}
+              thinking={this.state.thinking}
+              map_x={this.props.map_x}
+              map_y={this.props.map_y}
+              />
             <div>
-              <button className="game-button" onClick={() => this.onUndoClick()}>Undo</button>
-              <button className="game-button" onClick={() => this.onResetClick()}>Reset</button>
-              <button className="game-button" onClick={() => this.onAiClick()}>AI</button>
-              <div>Show Hints <input type="checkbox" onChange={(event) => this.onHintCheck(event)} /></div>
+              <button disabled={this.state.thinking} className="game-button" onClick={() => this.onUndoClick()}>Undo</button>
+              <button disabled={this.state.thinking} className="game-button" onClick={() => this.onResetClick()}>Reset</button>
+              <button disabled={this.state.thinking} className="game-button" onClick={() => this.onAiClick()}>AI</button>
+              <div>Show Hints <input disabled={this.state.thinking} type="checkbox" onChange={(event) => this.onHintCheck(event)} /></div>
             </div>
           </div>
-          <Info xNext={this.state.xNext} endstate={this.state.endstate} />
-          {/*
-          <div className="results-data">
-            <p className="info">Ideal: {this.state.value}</p>
-            <p className="info">Turns: {this.state.turns}</p>
-            <p className="info">Current: {this.state.endstate}</p>
-            <p>Gameid: {this.state.gameid}</p>
-          </div>
-          */}
+          <Info xNext={this.state.xNext} endstate={this.state.endstate} thinking={this.state.thinking} />
         </div>
       );
     }

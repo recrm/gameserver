@@ -3,20 +3,30 @@ import logging
 
 from flask import Flask
 
-if os.environ.get("REACT_APP_ENV") == "dev":
-  from flask_cors import CORS
-else:
-  CORS = None
+print(os.environ.get("REACT_APP_ENV"))
 
-from .connect4.game import Connect4
+if os.environ.get("REACT_APP_ENV") == "prod":
+    CORS = None
+else:
+    print("activating cors")
+    from flask_cors import CORS
+
+from .connect4.game import Connect4_4x4, Connect4_5x4, Connect4_5x5
 from .blueprint_constructor import new_blueprint
 
 app = Flask(__name__)
-connect4_app = new_blueprint("connect4", Connect4)
-app.register_blueprint(connect4_app, url_prefix="/connect4")
+
+connect4_4x4_app = new_blueprint("connect4_4x4", Connect4_4x4)
+app.register_blueprint(connect4_4x4_app, url_prefix="/connect4_4x4")
+
+connect4_5x4_app = new_blueprint("connect4_5x4", Connect4_5x4)
+app.register_blueprint(connect4_5x4_app, url_prefix="/connect4_5x4")
+
+connect4_5x5_app = new_blueprint("connect4_5x5", Connect4_5x5)
+app.register_blueprint(connect4_5x5_app, url_prefix="/connect4_5x5")
 
 if CORS:
-  CORS(app)
+    CORS(app)
 
 @app.before_first_request
 def setup_logging():
