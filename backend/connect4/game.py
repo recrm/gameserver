@@ -11,7 +11,7 @@ from . import udebs_config
 
 def connect4_cache(f=None, maxsize=None, storage=None):
     if maxsize is None:
-        maxsize = 2**23
+        maxsize = 2**20
 
     if storage is None:
         storage = OrderedDict()
