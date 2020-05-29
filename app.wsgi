@@ -2,5 +2,5 @@ import sys
 
 sys.path.append("/var/www/udebs")
 
-from backend import app as application
+from backend.index import app as application
 
