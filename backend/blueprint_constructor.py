@@ -80,6 +80,7 @@ def new_blueprint(name, Games):
         new_game = game.getRevert(1)
         if new_game:
             storage.games[gameid] = new_game
+            game = new_game
             current_app.logger.info(f"game reverted: {gameid}")
         else:
             current_app.logger.info(f"game not reverted: {gameid}")
@@ -87,7 +88,7 @@ def new_blueprint(name, Games):
         return {
             "gameid": gameid,
             "accepted": True if new_game else False,
-            "state": new_game.to_json() if new_game else game.to_json(),
+            "state": game.to_json(),
         }
 
     @app.route("/<gameid>/reset", methods=["GET"])
