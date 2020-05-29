@@ -231,7 +231,7 @@ export class Connect4 extends React.Component {
               <button disabled={this.state.thinking} className="game-button" onClick={() => this.onUndoClick()}>Undo</button>
               <button disabled={this.state.thinking} className="game-button" onClick={() => this.onResetClick()}>Reset</button>
               <button disabled={this.state.thinking} className="game-button" onClick={() => this.onAiClick()}>AI</button>
-              <div>Show Hints <input disabled={this.state.thinking} type="checkbox" onChange={(event) => this.onHintCheck(event)} /></div>
+              <div>Show Hints <input type="checkbox" onChange={(event) => this.onHintCheck(event)} /></div>
             </div>
           </div>
           <Info xNext={this.state.xNext} endstate={this.state.endstate} thinking={this.state.thinking} />
