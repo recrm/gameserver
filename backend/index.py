@@ -1,15 +1,11 @@
 import os
 import logging
-
 from flask import Flask
 
-print(os.environ.get("REACT_APP_ENV"))
-
-if os.environ.get("REACT_APP_ENV") == "prod":
-    CORS = None
-else:
-    print("activating cors")
+try:
     from flask_cors import CORS
+except ImportError:
+    CORS = None
 
 from .connect4.game import Connect4_4x4, Connect4_5x4, Connect4_5x5
 from .blueprint_constructor import new_blueprint
