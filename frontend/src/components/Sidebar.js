@@ -16,6 +16,13 @@ export const Sidebar = (props) => {
         <Link to="/connect4_5x5">
           <li>5 by 5</li>
         </Link>
+        <li><h4>TicTacToe</h4></li>
+        <Link to="/tictactoe_3x3">
+          <li>3 by 3</li>
+        </Link>
+        <Link to="/tictactoe_4x4">
+          <li>4 by 4</li>
+        </Link>
       </ul>
     </nav>
   );

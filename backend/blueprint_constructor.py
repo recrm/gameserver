@@ -18,17 +18,17 @@ def new_blueprint(name, Games):
 
     def checkid(f):
         @wraps(f)
-        def wrapper(gameid):
+        def wrapper(gameid, *args, **kwargs):
             if gameid not in storage.games:
                 current_app.logger.info(f"Game id not found: {gameid}")
                 return {"message": "Game id not found"}, 404
 
-            return f(gameid)
+            return f(gameid, *args, **kwargs)
 
         return wrapper
 
-    @app.route("/new", methods=["GET"])
-    def create_connect4():
+    @app.route("/new/<solver>", methods=["GET"])
+    def create_connect4(solver):
         gameid = str(uuid.uuid4())
         game = storage.createNew()
         storage.games[gameid] = game
@@ -36,22 +36,22 @@ def new_blueprint(name, Games):
 
         return {
             "gameid": gameid,
-            "state": game.to_json()
+            "state": game.to_json(solver == "children")
         }
 
-    @app.route("/<gameid>", methods=["GET"])
+    @app.route("/<gameid>/<solver>", methods=["GET"])
     @checkid
-    def view_connect4(gameid):
+    def view_connect4(gameid, solver):
         game = storage.games[gameid]
         current_app.logger.info(f"game viewed: {gameid}")
         return {
             "gameid": gameid,
-            "state": game.to_json(),
+            "state": game.to_json(solver == "children"),
         }
 
-    @app.route("/<gameid>/update", methods=["POST"])
+    @app.route("/<gameid>/update/<solver>", methods=["POST"])
     @checkid
-    def update_connect4(gameid):
+    def update_connect4(gameid, solver):
         game = storage.games[gameid]
 
         caster = safeGet(game, "caster")
@@ -69,13 +69,13 @@ def new_blueprint(name, Games):
         v = {
             "gameid": gameid,
             "accepted": update,
-            "state": game.to_json(),
+            "state": game.to_json(solver == "children"),
         }
         return v
 
-    @app.route("/<gameid>/revert", methods=["GET"])
+    @app.route("/<gameid>/revert/<solver>", methods=["GET"])
     @checkid
-    def revert_connect4(gameid):
+    def revert_connect4(gameid, solver):
         game = storage.games[gameid]
         new_game = game.getRevert(1)
         if new_game:
@@ -88,28 +88,18 @@ def new_blueprint(name, Games):
         return {
             "gameid": gameid,
             "accepted": True if new_game else False,
-            "state": game.to_json(),
+            "state": game.to_json(solver == "children"),
         }
 
-    @app.route("/<gameid>/reset", methods=["GET"])
+    @app.route("/<gameid>/reset/<solver>", methods=["GET"])
     @checkid
-    def reset_connect4(gameid):
+    def reset_connect4(gameid, solver):
         storage.games[gameid].resetState()
         current_app.logger.info(f"game reset: {gameid}")
         return {
             "gameid": gameid,
             "accepted": True,
-            "state": storage.games[gameid].to_json(),
-        }
-
-    @app.route("/<gameid>/delete", methods=["GET"])
-    @checkid
-    def delete_connect4(gameid):
-        del storage.games[gameid]
-        current_app.logger.info(f"game deleted: {gameid}")
-        return {
-            "gameid": gameid,
-            "accepted": True
+            "state": storage.games[gameid].to_json(solver == "children"),
         }
 
     return app

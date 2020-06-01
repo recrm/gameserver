@@ -113,7 +113,7 @@ export class Connect4 extends React.Component {
     gameid: null,
     xNext: true,
     error: false,
-    hints: false,
+    hints: "none",
     thinking: false,
   }
 
@@ -126,14 +126,13 @@ export class Connect4 extends React.Component {
           console.error(data.message);
           if (data.message === "Game id not found") {
             this.setState({xNext: true});
-            this.updateState(`${this.props.urlroot}/new`);
+            this.updateState(`${this.props.urlroot}/new/${this.state.hints}`);
           } else  {
             this.setState({error:true, thinking: false});
           }
         } else {
           this.setState({
             gameid: data.gameid,
-            value: data.state.value,
             current: Array.from(data.state.current),
             children: data.state.children,
             xNext: data.accepted ? !this.state.xNext : this.state.xNext,
@@ -146,14 +145,15 @@ export class Connect4 extends React.Component {
 
   onBoardClick(i) {
     if (this.state.endstate === null) {
-      const row = Math.floor(i % (this.props.map_x + 1));
+      const row = i % (this.props.map_x + 1);
+      const col = (i - row) / (this.props.map_x + 1)
 
       let formData = new FormData();
       formData.append("caster", this.state.xNext ? "xPlayer" : "oPlayer");
-      formData.append("move", "drop");
-      formData.append("target", [row, 0, "map"]);
+      formData.append("move", this.props.move);
+      formData.append("target", [row, col, "map"]);
 
-      const url = `${this.props.urlroot}/${this.state.gameid}/update`;
+      const url = `${this.props.urlroot}/${this.state.gameid}/update/${this.state.hints}`;
       this.updateState(url, {
         method: "post",
         body: formData,
@@ -166,8 +166,9 @@ export class Connect4 extends React.Component {
       let formData = new FormData();
       formData.append("caster", this.state.xNext ? "xPlayer" : "oPlayer");
       formData.append("move", "ai");
+      formData.append("target", this.props.move);
 
-      const url = `${this.props.urlroot}/${this.state.gameid}/update`;
+      const url = `${this.props.urlroot}/${this.state.gameid}/update/${this.state.hints}`;
       this.updateState(url, {
         method: "post",
         body: formData
@@ -176,20 +177,21 @@ export class Connect4 extends React.Component {
   }
 
   onUndoClick() {
-    const url = `${this.props.urlroot}/${this.state.gameid}/revert`;
+    const url = `${this.props.urlroot}/${this.state.gameid}/revert/${this.state.hints}`;
     this.updateState(url);
   }
 
   onResetClick() {
-    const url = `${this.props.urlroot}/${this.state.gameid}/reset`;
+    const url = `${this.props.urlroot}/${this.state.gameid}/reset/${this.state.hints}`;
     this.setState({xNext: false});
     this.updateState(url);
   }
 
   onHintCheck(event) {
-    this.setState({
-      hints: event.target.checked,
-    })
+    const hints = event.target.checked ? "children" : "none";
+    this.setState({hints: hints});
+    const url = `${this.props.urlroot}/${this.state.gameid}/${hints}`;
+    this.updateState(url);
   }
 
   componentDidMount() {
@@ -198,7 +200,7 @@ export class Connect4 extends React.Component {
 
     let url;
     if (gameid === null) {
-      url = `${this.props.urlroot}/new`;
+      url = `${this.props.urlroot}/new/${this.state.hints}`;
     } else {
       url = `${this.props.urlroot}/${gameid}`;
     }
@@ -231,7 +233,7 @@ export class Connect4 extends React.Component {
               <button disabled={this.state.thinking} className="game-button" onClick={() => this.onUndoClick()}>Undo</button>
               <button disabled={this.state.thinking} className="game-button" onClick={() => this.onResetClick()}>Reset</button>
               <button disabled={this.state.thinking} className="game-button" onClick={() => this.onAiClick()}>AI</button>
-              <div>Show Hints <input type="checkbox" onChange={(event) => this.onHintCheck(event)} /></div>
+              <div>Show Hints <input disabled={this.state.thinking} type="checkbox" onChange={(event) => this.onHintCheck(event)} /></div>
             </div>
           </div>
           <Info xNext={this.state.xNext} endstate={this.state.endstate} thinking={this.state.thinking} />

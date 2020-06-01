@@ -7,19 +7,15 @@ try:
 except ImportError:
     CORS = None
 
-from .connect4.game import Connect4_4x4, Connect4_5x4, Connect4_5x5
+from .connection import managers
 from .blueprint_constructor import new_blueprint
 
 app = Flask(__name__)
 
-connect4_4x4_app = new_blueprint("connect4_4x4", Connect4_4x4)
-app.register_blueprint(connect4_4x4_app, url_prefix="/connect4_4x4")
-
-connect4_5x4_app = new_blueprint("connect4_5x4", Connect4_5x4)
-app.register_blueprint(connect4_5x4_app, url_prefix="/connect4_5x4")
-
-connect4_5x5_app = new_blueprint("connect4_5x5", Connect4_5x5)
-app.register_blueprint(connect4_5x5_app, url_prefix="/connect4_5x5")
+# Connection games
+for manager in managers:
+    new_app = new_blueprint(manager.__name__, manager)
+    app.register_blueprint(new_app, url_prefix="/" + manager.__name__)
 
 if CORS:
     CORS(app)
