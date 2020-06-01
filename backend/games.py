@@ -4,7 +4,7 @@ import copy
 
 class Games(ABC):
     def __init__(self):
-        self.games = ExpiringDict(max_len=50, max_age_seconds=3600)
+        self.games = ExpiringDict(max_len=20, max_age_seconds=3600)
         self.template = self.createTemplate()
 
     @abstractmethod

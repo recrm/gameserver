@@ -68,7 +68,7 @@ def connect4_cache(f=None, maxsize=None, storage=None):
                         storage.move_to_end(key)
                         return value[0]
                     else:
-                        new = f(self, -value[2], -value[1], **kwargs)
+                        new = f(self, -value[2], -value[1])
                         storage[key] = new
                         storage.move_to_end(key)
                         return new
@@ -144,13 +144,19 @@ class Connection(udebs.State):
             "oPlayer": {"immutable": True},
         })
 
-    def result(self):
+    def result(self, alpha=-1, beta=1, storage=None, maxsize=None, verbose=False):
         endstate = self.endState()
         if endstate is not None:
             return -abs(endstate)
 
+        if storage is None:
+            storage = self.storage
+
+        if maxsize is None:
+            maxsize = self.maxsize
+
         clone = self.modifystate()
-        return clone.negamax(-1, 1, storage=self.storage, maxsize=self.maxsize, verbose=False)
+        return clone.negamax(alpha, beta, storage=storage, maxsize=maxsize, verbose=verbose)
 
     @udebs.countrecursion
     @connect4_cache

@@ -59,7 +59,7 @@ class Connect4_core(core.Connection):
 class Connect4_4x4(core.ConnectionManager):
     x = 4
     y = 4
-    maxsize = 2**14
+    maxsize = 2**14 # ~ 2 MB
     type = "Connect4"
     field=Connect4_core
     win_cond = 4
@@ -67,7 +67,7 @@ class Connect4_4x4(core.ConnectionManager):
 class Connect4_5x4(core.ConnectionManager):
     x = 5
     y = 4
-    maxsize = 2**18
+    maxsize = 2**18 # ~ 32 MB
     type = "Connect4"
     field=Connect4_core
     win_cond = 4
@@ -75,7 +75,7 @@ class Connect4_5x4(core.ConnectionManager):
 class Connect4_5x5(core.ConnectionManager):
     x = 5
     y = 5
-    maxsize = 2**20
+    maxsize = 2**20 # ~ 128MB
     type = "Connect4"
     field=Connect4_core
     win_cond = 4

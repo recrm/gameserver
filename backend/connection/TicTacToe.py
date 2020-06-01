@@ -55,7 +55,7 @@ class TicTacToe(Connection):
 class Tictactoe_3x3(ConnectionManager):
     x = 3
     y = 3
-    maxsize = 2**9
+    maxsize = 2**10
     type = "tictactoe"
     field=TicTacToe
     win_cond = 3
@@ -63,7 +63,7 @@ class Tictactoe_3x3(ConnectionManager):
 class Tictactoe_4x4(ConnectionManager):
     x = 4
     y = 4
-    maxsize = 2**19
+    maxsize = 2**19 # ~ 64 MB
     type = "tictactoe"
     field=TicTacToe
     win_cond = 4
@@ -71,7 +71,7 @@ class Tictactoe_4x4(ConnectionManager):
 class Tictactoe_5x5(ConnectionManager):
     x = 5
     y = 5
-    maxsize = 2**20
+    maxsize = 2**20 # ~ 128 MB
     type = "tictactoe"
     field=TicTacToe
     win_cond = 4
