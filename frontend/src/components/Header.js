@@ -5,11 +5,11 @@ export const Header = (props) => {
     return (
         <div className="header">
             <div className="sitename">
-                <h1>Ak-Rc Games</h1>
+                <h1>AK-RC Games</h1>
             </div>
             <div className="sidebar">
                 <ul>
-                    <li><h4>Connect4</h4></li>
+                    <li><h2>Connect4</h2></li>
                     <Link to="/connect4_4x4">
                         <li>4 by 4</li>
                     </Link>
@@ -21,7 +21,7 @@ export const Header = (props) => {
                     </Link>
                 </ul>
                 <ul>
-                    <li><h4>TicTacToe</h4></li>
+                    <li><h2>TicTacToe</h2></li>
                     <Link to="/tictactoe_3x3">
                         <li>3 by 3</li>
                     </Link>

@@ -11,9 +11,11 @@ function Square(props) {
     inner += props.value;
 
     return (
-        <button disabled={props.disable} className={name} onClick={props.onClick}>
-            <div className={inner}></div>
-        </button>
+        <div disabled={props.disable} className={name} onClick={props.onClick}>
+            <div className="grid-square-inner">
+                <div className={inner}></div>
+            </div>
+        </div>
     )
 }
 
@@ -39,9 +41,10 @@ function Info(props) {
 
   return (
     <div className="game-info">
-      <h2>{title}</h2>
-      <Square value={next} />
-      <h2>{props.thinking ? "Thinking" : ""}</h2>
+      <h1>{props.thinking ? "Thinking" : title}</h1>
+      <div className="grid">
+          <Square value={next} />
+      </div>
     </div>
   )
 }
@@ -217,8 +220,6 @@ export class Connect4 extends React.Component {
     }
     else {
       return (
-        <div>
-
             <div className="game-body">
                 <div className="game-board">
                     <h1>{this.props.name}</h1>
@@ -231,7 +232,7 @@ export class Connect4 extends React.Component {
                         map_x={this.props.map_x}
                         map_y={this.props.map_y}
                         />
-                    <div>
+                    <div className="game-controls">
                         <button disabled={this.state.thinking} className="game-button" onClick={() => this.onUndoClick()}>Undo</button>
                         <button disabled={this.state.thinking} className="game-button" onClick={() => this.onResetClick()}>Reset</button>
                         <button disabled={this.state.thinking} className="game-button" onClick={() => this.onAiClick()}>AI</button>
@@ -240,7 +241,6 @@ export class Connect4 extends React.Component {
                 </div>
                 <Info xNext={this.state.xNext} endstate={this.state.endstate} thinking={this.state.thinking} />
             </div>
-        </div>
       );
     }
   }
