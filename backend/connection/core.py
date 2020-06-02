@@ -92,46 +92,9 @@ class Connection(udebs.State):
     storage = OrderedDict()
     maxsize = 2**17
 
-    #---------------------------------------------------
-    #                 Main Symmetries                  -
-    #---------------------------------------------------
-    @staticmethod
-    def symmetry_x(split):
-        split = split.split("|")
-        return "|".join(i[::-1] for i in split)
-
-    @staticmethod
-    def symmetry_y(split):
-        split = split.split("|")
-        return "|".join(reversed(split))
-
-    @staticmethod
-    def symmetry_90(split):
-        split = split.split("|")
-        return "|".join("".join(x) for x in zip(*split))
-
-    @staticmethod
-    def symmetry_180(split):
-        split = split.split("|")
-        return "|".join(reversed([i[::-1] for i in split]))
-
-    @staticmethod
-    def symmetry_270(split):
-        split = split.split("|")
-        new = reversed([i[::-1] for i in split])
-        return "|".join("".join(x) for x in zip(*new))
-
     @staticmethod
     def identity(split):
         return split
-
-    @staticmethod
-    def stringDistance(one, two):
-        count = 0
-        for x, y in zip_longest(one, two):
-            if x != y:
-                count +=1
-        return count
 
     #---------------------------------------------------
     #                 Solver Code                      -
@@ -144,7 +107,7 @@ class Connection(udebs.State):
             "oPlayer": {"immutable": True},
         })
 
-    def result(self, alpha=-1, beta=1, storage=None, maxsize=None, verbose=False):
+    def result(self, alpha=-1, beta=1, storage=None, maxsize=None):
         endstate = self.endState()
         if endstate is not None:
             return -abs(endstate)
@@ -156,24 +119,25 @@ class Connection(udebs.State):
             maxsize = self.maxsize
 
         clone = self.modifystate()
-        return clone.negamax(alpha, beta, storage=storage, maxsize=maxsize, verbose=verbose)
+        return clone.negamax(alpha, beta, storage=storage, maxsize=maxsize)
 
     @udebs.countrecursion
     @connect4_cache
-    def negamax(self, alpha=-1, beta=1):
+    def negamax(self, alpha=-float("inf"), beta=float("inf")):
         value = -float("inf")
         for child, e in self.substates():
-            result = child
-            if child is not e:
+            if child is e:
+                result = -child
+            else:
                 result = -child.negamax(-beta, -alpha)
 
             if result > value:
                 value = result
-                if result > alpha:
-                    alpha = result
+                if value > alpha:
+                    alpha = value
 
             if alpha >= beta:
-                return value
+                break
 
         return value
 
@@ -184,18 +148,16 @@ class Connection(udebs.State):
         rState = str(self)
         canon = min(f(rState) for f in self.symmetries)
 
+        mappings = {
+            "_": "0",
+            "x": "1",
+            "o": "2",
+            "|": "",
+        }
+
         buf = ""
         for char in canon:
-            if char == "_":
-                buf += "0"
-            elif char == "x":
-                buf += "1"
-            elif char == "o":
-                buf += "2"
-            elif char == "|":
-                continue
-            else:
-                raise TypeError("unknown character", char)
+            buf += mappings[char]
 
         return int(buf, 3)
 

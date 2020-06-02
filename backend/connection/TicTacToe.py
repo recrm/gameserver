@@ -23,9 +23,11 @@ class TicTacToe(Connection):
             if map_[loc] == "empty":
                 position = player, loc, "placement"
 
+                self_pairs = udebs_config.win(map_, token, loc)
+
                 # First check if we win here.
-                if udebs_config.win(map_, token, loc) >= self.win_cond:
-                    yield 1
+                if self_pairs >= self.win_cond:
+                    yield -1
                     return
 
                 # we are in check, must play here
@@ -33,12 +35,12 @@ class TicTacToe(Connection):
                     if forced is None:
                         forced = position
                     else:
-                        forced = -1
+                        forced = 1
 
                 elif forced is None:
                     options.append((
                         *position,
-                        udebs_config.win(map_, token, loc)
+                        self_pairs
                     ))
 
         if forced is not None:
@@ -48,10 +50,42 @@ class TicTacToe(Connection):
         else:
             yield from sorted(options, key=lambda x: x[3], reverse=True)
 
+    #---------------------------------------------------
+    #                 Main Symmetries                  -
+    #---------------------------------------------------
+    @staticmethod
+    def symmetry_x(split):
+        split = split.split("|")
+        return "|".join(i[::-1] for i in split)
+
+    @staticmethod
+    def symmetry_y(split):
+        split = split.split("|")
+        return "|".join(reversed(split))
+
+    @staticmethod
+    def symmetry_90(split):
+        split = split.split("|")
+        return "|".join("".join(x) for x in zip(*split))
+
+    @staticmethod
+    def symmetry_180(split):
+        split = split.split("|")
+        return "|".join(reversed([i[::-1] for i in split]))
+
+    @staticmethod
+    def symmetry_270(split):
+        split = split.split("|")
+        new = reversed([i[::-1] for i in split])
+        return "|".join("".join(x) for x in zip(*new))
+
     @property
     def symmetries(self):
         return [self.identity, self.symmetry_x, self.symmetry_y, self.symmetry_90, self.symmetry_180, self.symmetry_270]
 
+#---------------------------------------------------
+#                 Managers                         -
+#---------------------------------------------------
 class Tictactoe_3x3(ConnectionManager):
     x = 3
     y = 3
@@ -63,7 +97,7 @@ class Tictactoe_3x3(ConnectionManager):
 class Tictactoe_4x4(ConnectionManager):
     x = 4
     y = 4
-    maxsize = 2**19 # ~ 64 MB
+    maxsize = 2**18 # ~ 32 MB
     type = "tictactoe"
     field=TicTacToe
     win_cond = 4
