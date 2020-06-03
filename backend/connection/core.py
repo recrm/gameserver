@@ -56,7 +56,7 @@ def connect4_cache(f=None, maxsize=None, storage=None):
                 nonlocal maxsize
                 maxsize = kwargs.pop("maxsize")
 
-            key = hash(self)
+            key = self.hash()
             value = storage.get(key, None)
             if value is not None:
                 try:
@@ -108,9 +108,8 @@ class Connection(udebs.State):
         })
 
     def result(self, alpha=-1, beta=1, storage=None, maxsize=None):
-        endstate = self.endState()
-        if endstate is not None:
-            return -abs(endstate)
+        if self.value is not None:
+            return -abs(self.value)
 
         if storage is None:
             storage = self.storage
@@ -121,7 +120,6 @@ class Connection(udebs.State):
         clone = self.modifystate()
         return clone.negamax(alpha, beta, storage=storage, maxsize=maxsize)
 
-    @udebs.countrecursion
     @connect4_cache
     def negamax(self, alpha=-float("inf"), beta=float("inf")):
         value = -float("inf")
@@ -142,25 +140,8 @@ class Connection(udebs.State):
         return value
 
     #---------------------------------------------------
-    #                 pState Management                -
+    #                   hash Management                -
     #---------------------------------------------------
-    def __hash__(self):
-        rState = str(self)
-        canon = min(f(rState) for f in self.symmetries)
-
-        mappings = {
-            "_": "0",
-            "x": "1",
-            "o": "2",
-            "|": "",
-        }
-
-        buf = ""
-        for char in canon:
-            buf += mappings[char]
-
-        return int(buf, 3)
-
     def __str__(self):
         map_ = self.getMap()
         buf = ''
@@ -175,9 +156,7 @@ class Connection(udebs.State):
         return buf.rstrip("|")
 
     def to_json(self, solver=True):
-        endstate = self.endState()
-
-        if endstate is None and solver:
+        if self.value is None and solver:
             children = {str(i): -i.result() for i,e in self.substates(self.fullChildren())}
         else:
             children = {}
@@ -185,12 +164,5 @@ class Connection(udebs.State):
         return {
             "current": str(self),
             "children": children,
-            "endstate": endstate
+            "endstate": self.value
         }
-
-    #---------------------------------------------------
-    #                 Replacement Methods              -
-    #---------------------------------------------------
-    @property
-    def symmetries(self):
-        raise NotImplementedError

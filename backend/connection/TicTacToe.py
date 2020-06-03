@@ -5,8 +5,8 @@ class TicTacToe(Connection):
     def fullChildren(self):
         player = "xPlayer" if self.time % 2 == 0 else "oPlayer"
         map_ = self.map["map"]
-        for loc in map_:
-            if map_[loc] == "empty":
+        for loc, value in map_.items():
+            if value == "empty":
                 yield player, loc, "placement"
 
     def legalMoves(self):
@@ -53,35 +53,34 @@ class TicTacToe(Connection):
     #---------------------------------------------------
     #                 Main Symmetries                  -
     #---------------------------------------------------
-    @staticmethod
-    def symmetry_x(split):
-        split = split.split("|")
-        return "|".join(i[::-1] for i in split)
+    def hash(self):
+        """Return an immutable representation of a game map."""
+        mappings = {
+            "empty": "0",
+            "x": "1",
+            "o": "2"
+        }
 
-    @staticmethod
-    def symmetry_y(split):
-        split = split.split("|")
-        return "|".join(reversed(split))
+        map_ = self.map["map"]
+        rows = []
+        for y in range(map_.y):
+            buf = ''
+            for x in range(map_.x):
+                buf += mappings[map_[(x,y)]]
+            rows.append(buf)
 
-    @staticmethod
-    def symmetry_90(split):
-        split = split.split("|")
-        return "|".join("".join(x) for x in zip(*split))
+        sym_y = lambda x: list(reversed(x))
+        sym_90 = lambda x: ["".join(reversed(x)) for x in zip(*x)]
 
-    @staticmethod
-    def symmetry_180(split):
-        split = split.split("|")
-        return "|".join(reversed([i[::-1] for i in split]))
+        syms = [rows]
+        for i in range(3):
+            syms.append(sym_90(syms[-1]))
 
-    @staticmethod
-    def symmetry_270(split):
-        split = split.split("|")
-        new = reversed([i[::-1] for i in split])
-        return "|".join("".join(x) for x in zip(*new))
+        syms.append(sym_y(syms[0]))
+        for i in range(3):
+            syms.append(sym_90(syms[-1]))
 
-    @property
-    def symmetries(self):
-        return [self.identity, self.symmetry_x, self.symmetry_y, self.symmetry_90, self.symmetry_180, self.symmetry_270]
+        return min(int("".join(i), 3) for i in syms)
 
 #---------------------------------------------------
 #                 Managers                         -
@@ -105,7 +104,7 @@ class Tictactoe_4x4(ConnectionManager):
 class Tictactoe_5x5(ConnectionManager):
     x = 5
     y = 5
-    maxsize = 2**20 # ~ 128 MB
+    maxsize = float("inf") # ~ 128 MB
     type = "tictactoe"
     field=TicTacToe
     win_cond = 4

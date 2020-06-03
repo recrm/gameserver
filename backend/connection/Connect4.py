@@ -56,14 +56,26 @@ class Connect4_core(core.Connection):
     #---------------------------------------------------
     #                 Main Symmetries                  -
     #---------------------------------------------------
-    @staticmethod
-    def symmetry_x(split):
-        split = split.split("|")
-        return "|".join(i[::-1] for i in split)
+    def hash(self):
+        """Return an immutable representation of a game map."""
+        mappings = {
+            "empty": "0",
+            "x": "1",
+            "o": "2",
+        }
 
-    @property
-    def symmetries(self):
-        return [self.identity, self.symmetry_x]
+        map_ = self.getMap()
+        rows = []
+        for y in range(map_.y):
+            buf = ""
+            for x in range(map_.x):
+                buf += mappings[map_[x,y]]
+            rows.append(buf)
+
+        one = "".join(rows)
+        two = "".join(i[::-1] for i in rows)
+
+        return min(int(one, 3), int(two, 3))
 
 #---------------------------------------------------
 #                 Managers                         -

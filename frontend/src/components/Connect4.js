@@ -185,8 +185,8 @@ export class Connect4 extends React.Component {
   }
 
   onResetClick() {
-    const url = `${this.props.url}/${this.props.name}/${this.state.gameid}/reset/${this.state.hints}`;
-    this.setState({xNext: false});
+    const url = `${this.props.url}/${this.props.name}/${this.state.gameid}/reset/none`;
+    this.setState({xNext: false, hints: "none"});
     this.updateState(url);
   }
 
@@ -236,7 +236,11 @@ export class Connect4 extends React.Component {
                         <button disabled={this.state.thinking} className="game-button" onClick={() => this.onUndoClick()}>Undo</button>
                         <button disabled={this.state.thinking} className="game-button" onClick={() => this.onResetClick()}>Reset</button>
                         <button disabled={this.state.thinking} className="game-button" onClick={() => this.onAiClick()}>AI</button>
-                        <div>Show Hints <input disabled={this.state.thinking} type="checkbox" onChange={(event) => this.onHintCheck(event)} /></div>
+                        <div>Show Hints <input disabled={this.state.thinking}
+                                            type="checkbox"
+                                            checked={(this.state.hints === "children")}
+                                            onChange={(event) => this.onHintCheck(event)}
+                                            /></div>
                     </div>
                 </div>
                 <Info xNext={this.state.xNext} endstate={this.state.endstate} thinking={this.state.thinking} />

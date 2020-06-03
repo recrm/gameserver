@@ -132,9 +132,7 @@ body {
 
 .game-button {
     border: 1px solid #999;
-    border-right: 1px solid black;
     border-radius: 5px;
-    height: 34px;
     margin: 5px 2.5px;
     padding: 0;
     width: 25%;
