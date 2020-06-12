@@ -103,7 +103,12 @@ class Connection(udebs.State):
             map_ = self.getMap().copy()
             map_.playerx = self.getStat("xPlayer", "ACT") >= 2
             map_.time = self.time
-            value = self.negamax(alpha, beta, map_, self.storage)
+
+            with udebs.Timer(verbose=False) as t:
+                value = self.negamax(alpha, beta, map_, self.storage)
+
+            if t.total > 5:
+                self.start_book[key] = value
         else:
             value = -int((len(map_) - self.time) / 2)
 
