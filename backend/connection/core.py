@@ -90,21 +90,20 @@ class Connection(udebs.State):
     #---------------------------------------------------
     #                 Solver Code                      -
     #---------------------------------------------------
-    def result(self, alpha=-1, beta=1, storage=None):
+    def result(self, alpha=-1, beta=1):
         assert alpha < beta
 
-        key = self.hash(self.getMap())
+        map_ = self.getMap()
+
+        key = self.hash(map_)
         if key in self.start_book:
             return self.start_book[key]
-
-        if storage is None:
-            storage = self.storage
 
         if self.value is None:
             map_ = self.getMap().copy()
             map_.playerx = self.getStat("xPlayer", "ACT") >= 2
             map_.time = self.time
-            value = self.negamax(alpha, beta, map_, storage)
+            value = self.negamax(alpha, beta, map_, self.storage)
         else:
             value = -int((len(map_) - self.time) / 2)
 

@@ -123,7 +123,10 @@ export class Connect4 extends React.Component {
   updateState(url, request) {
     this.setState({thinking: true});
     fetch(url, request)
-      .then(response => response.json())
+      .then(response => {
+//         console.log(response.text())
+        return response.json();
+      })
       .then(data => {
         if (data.message !== undefined) {
           console.error(data.message);
@@ -144,6 +147,10 @@ export class Connect4 extends React.Component {
           });
         }
       })
+      .catch((error) => {
+        console.log(error);
+        this.setState({"error": true});
+    })
   }
 
   onBoardClick(i) {
