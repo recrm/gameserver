@@ -47,7 +47,7 @@ def ENDSTATE(state, map_, token, loc):
 @udebs.register(["self", "$1"])
 def COMPUTER(state, player):
     # Get all possible replies.
-    children = [(e, -i.result()) for i, e in state.substates(state.fullChildren())]
+    children = [(e, -i.result()) for i, e in state.substates()]
 
     replies = []
     for _i in (1, 0, -1):
