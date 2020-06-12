@@ -12,6 +12,7 @@ from . import udebs_config
 class ConnectionManager(Games):
     def createTemplate(self):
         self.path = pathlib.Path(__file__).parent / "data" / f"{self.type}-{self.x}x{self.y}.pkl"
+        self.book_path = pathlib.Path(__file__).parent / "data" / f"{self.type}-book-{self.x}x{self.y}.pkl"
 
         try:
             with (self.path).open("rb") as f:
@@ -19,11 +20,18 @@ class ConnectionManager(Games):
         except FileNotFoundError:
             self.storage = OrderedDict()
 
+        try:
+            with (self.book_path).open("rb") as f:
+                self.start_book = pickle.load(f)
+        except FileNotFoundError:
+            self.start_book = {}
+
         config = modifyconfig(udebs_config.config, self.x, self.y)
         main_map = udebs.battleStart(config, field=self.field())
 
         for state in [main_map, main_map.state[0]]:
             state.storage = self.storage
+            state.start_book = self.start_book
             state.maxsize = self.maxsize
             state.win_cond = self.win_cond
 
@@ -38,106 +46,99 @@ def modifyconfig(config, x, y):
 
     return ET.tostring(root)
 
-def connect4_cache(f=None, maxsize=None, storage=None):
-    if maxsize is None:
-        maxsize = 2**20
+def connect4_cache(f, maxsize=2**20):
+    storage = OrderedDict()
+    empty = (-float("inf"), float("inf"))
 
-    if storage is None:
-        storage = OrderedDict()
+    @functools.wraps(f)
+    def cache_wrapper(self, alpha, beta, map_, new_storage=None):
+        if new_storage is not None:
+            nonlocal storage
+            storage = new_storage
 
-    def cache(f):
-        @functools.wraps(f)
-        def wrapper(self, alpha, beta, **kwargs):
-            if "storage" in kwargs:
-                nonlocal storage
-                storage = kwargs.pop("storage")
+        key = self.hash(map_)
 
-            if "maxsize" in kwargs:
-                nonlocal maxsize
-                maxsize = kwargs.pop("maxsize")
+        a_, b_ = storage.get(key, empty)
+        if a_ > alpha:
+            alpha = a_
 
-            key = self.hash()
-            value = storage.get(key, None)
-            if value is not None:
-                try:
-                    value[1]
-                except TypeError:
-                    return value
-                else:
-                    if value[1] == alpha and value[2] == beta:
-                        storage.move_to_end(key)
-                        return value[0]
-                    else:
-                        new = f(self, -value[2], -value[1])
-                        storage[key] = new
-                        storage.move_to_end(key)
-                        return new
+        if b_ < beta:
+            beta = b_
 
-            value = f(self, alpha, beta, **kwargs)
-            if value != 0 or alpha + beta == 0:
-                storage[key] = value
-            else:
-                storage[key] = (value, alpha, beta)
+        if alpha >= beta:
+            # Note: Alpha and beta may not be the same.
+            # Returning either will produce the right answer, but
+            # it is unclear which is more effecient.
+            return beta
 
-            while (storage.__len__() > maxsize):
-                storage.popitem(False)
+        result = f(self, alpha, beta, map_)
+        if result <= alpha:
+            storage[key] = (a_, result)
+        elif result >= beta:
+            storage[key] = (result, b_)
+        else:
+            storage[key] = (result, result)
 
-            return value
+        storage.move_to_end(key)
+        while storage.__len__() > maxsize:
+            storage.popitem(False)
 
-        return wrapper
-
-    return cache if f is None else cache(f)
+        return result
+    return cache_wrapper
 
 class Connection(udebs.State):
-    storage = OrderedDict()
-    maxsize = 2**17
-
-    @staticmethod
-    def identity(split):
-        return split
-
     #---------------------------------------------------
     #                 Solver Code                      -
     #---------------------------------------------------
-    def modifystate(self):
-        return udebs.modifystate(self, {
-            "drop": {"group": []},
-            "placement": {"group": []},
-            "xPlayer": {"immutable": True},
-            "oPlayer": {"immutable": True},
-        })
+    def result(self, alpha=-1, beta=1, storage=None):
+        assert alpha < beta
 
-    def result(self, alpha=-1, beta=1, storage=None, maxsize=None):
-        if self.value is not None:
-            return -abs(self.value)
+        key = self.hash(self.getMap())
+        if key in self.start_book:
+            return self.start_book[key]
 
         if storage is None:
             storage = self.storage
 
-        if maxsize is None:
-            maxsize = self.maxsize
+        if self.value is None:
+            map_ = self.getMap().copy()
+            map_.playerx = self.getStat("xPlayer", "ACT") >= 2
+            map_.time = self.time
+            value = self.negamax(alpha, beta, map_, storage)
+        else:
+            value = -int((len(map_) - self.time) / 2)
 
-        clone = self.modifystate()
-        return clone.negamax(alpha, beta, storage=storage, maxsize=maxsize)
+        if value > beta:
+            return beta
+        if value < alpha:
+            return alpha
+        return value
+
+    def substates2(self, map_):
+        for move in self.legalMoves2(map_):
+            if not isinstance(move, tuple):
+                yield move, move
+            else:
+                stateNew = map_.copy()
+                stateNew.playerx = not map_.playerx
+                stateNew[move[1]] = move[0]
+                stateNew.time = map_.time + 1
+                yield stateNew, move
 
     @connect4_cache
-    def negamax(self, alpha=-float("inf"), beta=float("inf")):
-        value = -float("inf")
-        for child, e in self.substates():
+    def negamax(self, alpha, beta, map_):
+        for child, e in self.substates2(map_):
             if child is e:
                 result = -child
             else:
-                result = -child.negamax(-beta, -alpha)
+                result = -self.negamax(-beta, -alpha, child)
 
-            if result > value:
-                value = result
-                if value > alpha:
-                    alpha = value
+            if result > alpha:
+                alpha = result
+                if alpha >= beta:
+                    return alpha
 
-            if alpha >= beta:
-                break
-
-        return value
+        return alpha
 
     #---------------------------------------------------
     #                   hash Management                -
@@ -157,7 +158,7 @@ class Connection(udebs.State):
 
     def to_json(self, solver=True):
         if self.value is None and solver:
-            children = {str(i): -i.result() for i,e in self.substates(self.fullChildren())}
+            children = {str(i): -i.result() for i,e in self.substates()}
         else:
             children = {}
 

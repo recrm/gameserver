@@ -2,58 +2,55 @@ from .core import Connection, ConnectionManager
 from . import udebs_config
 
 class TicTacToe(Connection):
-    def fullChildren(self):
+    def legalMoves(self):
         player = "xPlayer" if self.time % 2 == 0 else "oPlayer"
         map_ = self.map["map"]
         for loc, value in map_.items():
             if value == "empty":
                 yield player, loc, "placement"
 
-    def legalMoves(self):
-        map_ = self.map["map"]
-
-        player = "xPlayer" if self.time % 2 == 0 else "oPlayer"
-        other = self.getStat("oPlayer" if player == "xPlayer" else "xPlayer", "token")
-        token = self.getStat(player, "token")
+    def legalMoves2(self, map_):
+        token = "x" if map_.playerx else "o"
+        other = ("o" if token == "x" else "x")
 
         options = []
         forced = None
 
         for loc in map_:
             if map_[loc] == "empty":
-                position = player, loc, "placement"
-
-                self_pairs = udebs_config.win(map_, token, loc)
+                position = token, loc, "placement"
 
                 # First check if we win here.
-                if self_pairs >= self.win_cond:
+                win_me = udebs_config.win(map_, token, loc)
+                if win_me >= self.win_cond:
                     yield -1
                     return
 
                 # we are in check, must play here
-                elif udebs_config.win(map_, other, loc) >= self.win_cond:
-                    if forced is None:
+                if forced is None:
+                    win_you = udebs_config.win(map_, other, loc)
+                    if win_you >= self.win_cond:
                         forced = position
-                    else:
-                        forced = 1
+                        continue
 
-                elif forced is None:
                     options.append((
                         *position,
-                        self_pairs
+                        win_me
                     ))
 
-        if forced is not None:
+        if forced:
             yield forced
+            return
         elif len(options) == 0:
             yield 0
+            return
         else:
             yield from sorted(options, key=lambda x: x[3], reverse=True)
 
     #---------------------------------------------------
     #                 Main Symmetries                  -
     #---------------------------------------------------
-    def hash(self):
+    def hash(self, map_):
         """Return an immutable representation of a game map."""
         mappings = {
             "empty": "0",
@@ -61,13 +58,10 @@ class TicTacToe(Connection):
             "o": "2"
         }
 
-        map_ = self.map["map"]
         rows = []
         for y in range(map_.y):
-            buf = ''
-            for x in range(map_.x):
-                buf += mappings[map_[(x,y)]]
-            rows.append(buf)
+            buf = [mappings[map_[x,y]] for x in range(map_.x)]
+            rows.append("".join(buf))
 
         sym_y = lambda x: list(reversed(x))
         sym_90 = lambda x: ["".join(reversed(x)) for x in zip(*x)]
@@ -88,7 +82,7 @@ class TicTacToe(Connection):
 class Tictactoe_3x3(ConnectionManager):
     x = 3
     y = 3
-    maxsize = 2**10
+    maxsize = 2**4
     type = "tictactoe"
     field=TicTacToe
     win_cond = 3
@@ -96,7 +90,7 @@ class Tictactoe_3x3(ConnectionManager):
 class Tictactoe_4x4(ConnectionManager):
     x = 4
     y = 4
-    maxsize = 2**18 # ~ 32 MB
+    maxsize = 2**15 # ~ 32 MB
     type = "tictactoe"
     field=TicTacToe
     win_cond = 4

@@ -1,81 +1,84 @@
 from . import core, udebs_config
 
 class Connect4_core(core.Connection):
-    def fullChildren(self):
+    def legalMoves(self):
         player = "xPlayer" if self.time % 2 == 0 else "oPlayer"
         for x in range(self.map["map"].x):
             yield player, (x, 0), "drop"
 
-    def legalMoves(self):
-        map_ = self.map["map"]
-        player = "xPlayer" if self.time % 2 == 0 else "oPlayer"
-        other = self.getStat("oPlayer" if player == "xPlayer" else "xPlayer", "token")
-        token = self.getStat(player, "token")
+    def legalMoves2(self, map_):
+        token = "x" if map_.playerx else "o"
+        other = ("o" if token == "x" else "x")
 
         options = []
         forced = None
         backup = None
 
+        stones = len(map_) - map_.time
+
+        # First yield score of surrender
+        yield int(stones / 2)
+
         for x in range(map_.x):
             y = udebs_config.BOTTOM(map_, x)
             if y is not None:
-                loc = (x,y)
-                position = player, loc, "drop"
-                self_pairs = udebs_config.win(map_, token, loc)
+                loc = (x, y)
+                position = token, loc, "drop"
 
                 # First check if we win here.
-                if self_pairs >= self.win_cond:
-                    yield -1
+                win_me = udebs_config.win(map_, token, loc)
+                if win_me >= self.win_cond:
+                    yield -int((stones + 1) / 2)
                     return
 
-                # we are in check, must play here
-                elif udebs_config.win(map_, other, loc) >= self.win_cond:
-                    if forced is None:
+                if forced is None:
+                    win_you = udebs_config.win(map_, other, loc)
+                    if win_you >= self.win_cond:
+                        # we are in check, must play here
                         forced = position
-                    else:
-                        forced = 1
+                        continue
 
-                elif forced is None:
-                    # This would put us in check, can't play here
-                    if y > 0 and udebs_config.win(map_, other, (x, y - 1)) >= self.win_cond:
-                        backup = 1
-                    else:
-                        options.append((
-                            *position,
-                            self_pairs,
-                            -abs(((map_.x - 1) / 2) - x)
-                        ))
+                    if y > 0:
+                        above_you = udebs_config.win(map_, other, (x, y - 1))
+                        if above_you >= self.win_cond:
+                            # We cannot play here unless it is our only option
+                            backup = int((stones + 2) / 2)
+                            continue
+
+                    # finally these are our only good options
+                    options.append((
+                        *position,
+                        win_me,
+                    ))
 
         if forced:
             yield forced
+            return
         elif len(options) == 0:
             yield backup if backup else 0
-        else:
-            yield from sorted(options, key=lambda x: x[3:5], reverse=True)
+            return
+
+        huristic = lambda x: (x[3], -abs(((map_.x - 1) / 2) - x[1][0]))
+        yield from sorted(options, key=huristic, reverse=True)
 
     #---------------------------------------------------
     #                 Main Symmetries                  -
     #---------------------------------------------------
-    def hash(self):
-        """Return an immutable representation of a game map."""
+    def hash(self, map_):
         mappings = {
             "empty": "0",
             "x": "1",
             "o": "2",
         }
 
-        map_ = self.getMap()
-        rows = []
+        data = []
+        sym = []
         for y in range(map_.y):
-            buf = ""
-            for x in range(map_.x):
-                buf += mappings[map_[x,y]]
-            rows.append(buf)
+            buf = [mappings[map_[x,y]] for x in range(map_.x)]
+            data.extend(buf)
+            sym.extend(reversed(buf))
 
-        one = "".join(rows)
-        two = "".join(i[::-1] for i in rows)
-
-        return min(int(one, 3), int(two, 3))
+        return min(int("".join(data), 3), int("".join(sym), 3))
 
 #---------------------------------------------------
 #                 Managers                         -
@@ -98,6 +101,14 @@ class Connect4_5x4(core.ConnectionManager):
 
 class Connect4_5x5(core.ConnectionManager):
     x = 5
+    y = 5
+    maxsize = 2**22 # ~ 512MB
+    type = "Connect4"
+    field=Connect4_core
+    win_cond = 4
+
+class Connect4_6x5(core.ConnectionManager):
+    x = 6
     y = 5
     maxsize = 2**22 # ~ 512MB
     type = "Connect4"
