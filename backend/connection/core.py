@@ -12,7 +12,6 @@ from . import udebs_config
 
 
 class ConnectionManager(Games):
-    maxsize = None
     win_cond = None
     type = None
     x = None
@@ -38,8 +37,8 @@ class ConnectionManager(Games):
 
         for state in [main_map, main_map.state[0]]:
             state.start_book = self.start_book
-            state.maxsize = self.maxsize
             state.win_cond = self.win_cond
+            state.storage = OrderedDict()
 
         return main_map
 
@@ -85,7 +84,7 @@ def connect4_cache(f, maxsize=2 ** 20):
             # it is unclear which is more effecient.
             if key in storage:
                 storage.move_to_end(key)
-            return beta
+            return alpha
 
         result = f(self, alpha, beta, map_)
         if result <= alpha:
@@ -196,12 +195,12 @@ class Connection(udebs.State, ABC):
         return buf.rstrip("|")
 
     def to_json(self, solver=True):
-        storage = OrderedDict()
-
         if self.value is None and solver:
-            children = {str(i): -i.result(-1, 1, storage) for i, e in self.substates()}
+            children = {str(i): -i.result(-1, 1, self.storage) for i, e in self.substates()}
         else:
             children = {}
+
+        self.storage = OrderedDict()
 
         return {
             "current": str(self),

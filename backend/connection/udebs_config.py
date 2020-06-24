@@ -52,8 +52,7 @@ def ENDSTATE(state, map_, token, loc):
 @udebs.register(["self", "$1"])
 def COMPUTER(state, player):
     # Get all possible replies.
-    storage = OrderedDict()
-    children = [(e, -i.result(-1, 1, storage)) for i, e in state.substates()]
+    children = [(e, -i.result(-1, 1, state.storage)) for i, e in state.substates()]
     replies = []
     for _i in (1, 0, -1):
         for entry, value in children:

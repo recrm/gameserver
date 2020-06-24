@@ -82,27 +82,27 @@ class TicTacToe(Connection):
 #                 Managers                         -
 # ---------------------------------------------------
 class Tictactoe_3x3(ConnectionManager):
+    depth = 4
     x = 3
     y = 3
-    maxsize = 2 ** 4
     type = "tictactoe"
     field = TicTacToe
     win_cond = 3
 
 
 class Tictactoe_4x4(ConnectionManager):
+    depth = 4
     x = 4
     y = 4
-    maxsize = 2 ** 15  # ~ 32 MB
     type = "tictactoe"
     field = TicTacToe
     win_cond = 4
 
 
 class Tictactoe_5x5(ConnectionManager):
+    depth = 4
     x = 5
     y = 5
-    maxsize = float("inf")  # ~ 128 MB
     type = "tictactoe"
     field = TicTacToe
     win_cond = 4

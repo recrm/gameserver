@@ -20,9 +20,8 @@ def generate():
         main_map = data_manager.createNew()
         storage = OrderedDict()
 
-        depth = 4
         with udebs.Timer():
-            iterate(main_map, depth, storage)
+            iterate(main_map, data_manager.depth, storage)
 
         with open(data_manager.book_path, "wb+") as f:
             pickle.dump(main_map.start_book, f)

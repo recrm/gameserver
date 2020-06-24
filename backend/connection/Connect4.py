@@ -111,36 +111,36 @@ class Connect4Core(core.Connection):
 #                 Managers                         -
 # ---------------------------------------------------
 class Connect4_4x4(core.ConnectionManager):
+    depth = 4
     x = 4
     y = 4
-    maxsize = 2 ** 14  # ~ 2 MB
     type = "Connect4"
     field = Connect4Core
     win_cond = 4
 
 
 class Connect4_5x4(core.ConnectionManager):
+    depth = 4
     x = 5
     y = 4
-    maxsize = 2 ** 18  # ~ 32 MB
     type = "Connect4"
     field = Connect4Core
     win_cond = 4
 
 
 class Connect4_5x5(core.ConnectionManager):
+    depth = 5
     x = 5
     y = 5
-    maxsize = 2 ** 22  # ~ 512MB
     type = "Connect4"
     field = Connect4Core
     win_cond = 4
 
 
 class Connect4_6x5(core.ConnectionManager):
+    depth = 6
     x = 6
     y = 5
-    maxsize = 2 ** 22  # ~ 512MB
     type = "Connect4"
     field = Connect4Core
     win_cond = 4
