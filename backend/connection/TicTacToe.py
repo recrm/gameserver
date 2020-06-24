@@ -12,14 +12,14 @@ class TicTacToe(Connection):
 
     def legalMoves2(self, map_):
         token = "x" if map_.playerx else "o"
-        other = ("o" if token == "x" else "x")
+        other = "o" if token == "x" else "x"
 
         options = []
         forced = None
 
         for loc in map_:
             if map_[loc] == "empty":
-                position = token, loc, "placement"
+                position = token, loc
 
                 # First check if we win here.
                 win_me = udebs_config.win(map_, token, loc)
@@ -34,10 +34,7 @@ class TicTacToe(Connection):
                         forced = position
                         continue
 
-                    options.append((
-                        *position,
-                        win_me
-                    ))
+                    options.append(position)
 
         if forced:
             yield forced
@@ -46,7 +43,7 @@ class TicTacToe(Connection):
             yield 0
             return
         else:
-            yield from sorted(options, key=lambda x: x[3], reverse=True)
+            yield from options
 
     # ---------------------------------------------------
     #                 Main Symmetries                  -

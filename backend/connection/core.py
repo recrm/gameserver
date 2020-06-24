@@ -108,24 +108,28 @@ class Connection(udebs.State, ABC):
     # ---------------------------------------------------
     #                 Solver Code                      -
     # ---------------------------------------------------
-    def result(self, alpha=None, beta=None):
+    def result(self, alpha=None, beta=None, storage=None):
         map_ = self.getMap().copy()
 
         key = self.hash(map_)
         if key in self.start_book:
             return self.start_book[key]
 
+        if storage is None:
+            storage = OrderedDict()
+
         map_.playerx = self.getStat("xPlayer", "ACT") >= 2
         map_.scored = len(map_) - self.time
         map_.const = (map_.x - 1) / 2
-
+        map_.time = self.time
         computed = None
         if self.value is not None:
             computed = -(map_.scored + 1) // 2
         else:
             # We have to check if we are one turn away from victory
             for player, loc, move in self.legalMoves():
-                if udebs_config.win(map_, player[0], loc) >= self.win_cond:
+                win_me = udebs_config.win(map_, player[0], loc)
+                if win_me >= self.win_cond:
                     computed = (map_.scored + 1) // 2
                     break
 
@@ -141,40 +145,7 @@ class Connection(udebs.State, ABC):
         if not alpha:
             alpha = -beta
 
-        return self.negamax(alpha, beta, map_)
-
-    def result(self, alpha=-1, beta=1, storage=None):
-        assert alpha < beta
-
-        if storage is None:
-            storage = OrderedDict()
-
-        map_ = self.getMap()
-
-        key = self.hash(map_)
-        if key in self.start_book:
-            return self.start_book[key]
-
-        if self.value is None:
-            map_ = self.getMap().copy()
-            map_.playerx = self.getStat("xPlayer", "ACT") >= 2
-            map_.time = self.time
-            map_.scored = len(map_) - self.time
-            map_.const = (map_.x - 1) / 2
-
-            with udebs.Timer(verbose=False) as t:
-                value = self.negamax(alpha, beta, map_, storage)
-
-            if t.total > 5:
-                self.start_book[key] = value
-        else:
-            value = (len(map_) - self.time) // 2
-
-        if value > beta:
-            return beta
-        if value < alpha:
-            return alpha
-        return value
+        return self.negamax(alpha, beta, map_, storage)
 
     @staticmethod
     def play_next(map_, token, loc):

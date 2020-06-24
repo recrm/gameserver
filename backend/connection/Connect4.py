@@ -9,7 +9,9 @@ class Connect4Core(core.Connection):
     def legalMoves(self):
         player = "xPlayer" if self.time % 2 == 0 else "oPlayer"
         for x in range(self.map["map"].x):
-            yield player, (x, 0), "drop"
+            y = udebs_config.BOTTOM(self.map["map"], x)
+            if y is not None:
+                yield player, (x, y), "drop"
 
     @staticmethod
     def win_heuristic(map_, token, loc):
