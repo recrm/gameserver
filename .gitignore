@@ -3,3 +3,10 @@
 *.ipynb
 frontend/build/*
 frontend/node_modules/*
+/.idea/misc.xml
+/.idea/gameserver.iml
+/.idea/modules.xml
+/.idea/inspectionProfiles/profiles_settings.xml
+/.idea/inspectionProfiles/Project_Default.xml
+/.idea/dictionaries/ryan.xml
+/.idea/vcs.xml

@@ -1,6 +1,7 @@
 from .core import Connection, ConnectionManager
 from . import udebs_config
 
+
 class TicTacToe(Connection):
     def legalMoves(self):
         player = "xPlayer" if self.time % 2 == 0 else "oPlayer"
@@ -47,9 +48,9 @@ class TicTacToe(Connection):
         else:
             yield from sorted(options, key=lambda x: x[3], reverse=True)
 
-    #---------------------------------------------------
+    # ---------------------------------------------------
     #                 Main Symmetries                  -
-    #---------------------------------------------------
+    # ---------------------------------------------------
     def hash(self, map_):
         """Return an immutable representation of a game map."""
         mappings = {
@@ -60,11 +61,14 @@ class TicTacToe(Connection):
 
         rows = []
         for y in range(map_.y):
-            buf = [mappings[map_[x,y]] for x in range(map_.x)]
+            buf = [mappings[map_[x, y]] for x in range(map_.x)]
             rows.append("".join(buf))
 
-        sym_y = lambda x: list(reversed(x))
-        sym_90 = lambda x: ["".join(reversed(x)) for x in zip(*x)]
+        def sym_y(row):
+            return list(reversed(row))
+
+        def sym_90(row):
+            return ["".join(reversed(x_)) for x_ in zip(*row)]
 
         syms = [rows]
         for i in range(3):
@@ -76,29 +80,32 @@ class TicTacToe(Connection):
 
         return min(int("".join(i), 3) for i in syms)
 
-#---------------------------------------------------
+
+# ---------------------------------------------------
 #                 Managers                         -
-#---------------------------------------------------
+# ---------------------------------------------------
 class Tictactoe_3x3(ConnectionManager):
     x = 3
     y = 3
-    maxsize = 2**4
+    maxsize = 2 ** 4
     type = "tictactoe"
-    field=TicTacToe
+    field = TicTacToe
     win_cond = 3
+
 
 class Tictactoe_4x4(ConnectionManager):
     x = 4
     y = 4
-    maxsize = 2**15 # ~ 32 MB
+    maxsize = 2 ** 15  # ~ 32 MB
     type = "tictactoe"
-    field=TicTacToe
+    field = TicTacToe
     win_cond = 4
+
 
 class Tictactoe_5x5(ConnectionManager):
     x = 5
     y = 5
-    maxsize = float("inf") # ~ 128 MB
+    maxsize = float("inf")  # ~ 128 MB
     type = "tictactoe"
-    field=TicTacToe
+    field = TicTacToe
     win_cond = 4

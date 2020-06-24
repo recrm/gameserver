@@ -2,9 +2,10 @@ import uuid
 from flask import request, Blueprint, current_app
 from functools import wraps
 
-def new_blueprint(name, Games):
+
+def new_blueprint(name, games):
     app = Blueprint(name, __name__)
-    storage = Games()
+    storage = games()
 
     def safeGet(game, value):
         raw = request.form.get(value, "empty")
@@ -16,7 +17,7 @@ def new_blueprint(name, Games):
 
         return raw
 
-    def checkid(f):
+    def check_id(f):
         @wraps(f)
         def wrapper(gameid, *args, **kwargs):
             if gameid not in storage.games:
@@ -40,7 +41,7 @@ def new_blueprint(name, Games):
         }
 
     @app.route("/<gameid>/<solver>", methods=["GET"])
-    @checkid
+    @check_id
     def view_connect4(gameid, solver):
         game = storage.games[gameid]
         current_app.logger.info(f"game viewed: {gameid}")
@@ -50,7 +51,7 @@ def new_blueprint(name, Games):
         }
 
     @app.route("/<gameid>/update/<solver>", methods=["POST"])
-    @checkid
+    @check_id
     def update_connect4(gameid, solver):
         game = storage.games[gameid]
 
@@ -74,7 +75,7 @@ def new_blueprint(name, Games):
         return v
 
     @app.route("/<gameid>/revert/<solver>", methods=["GET"])
-    @checkid
+    @check_id
     def revert_connect4(gameid, solver):
         game = storage.games[gameid]
         new_game = game.getRevert(1)
@@ -92,7 +93,7 @@ def new_blueprint(name, Games):
         }
 
     @app.route("/<gameid>/reset/<solver>", methods=["GET"])
-    @checkid
+    @check_id
     def reset_connect4(gameid, solver):
         storage.games[gameid].resetState()
         current_app.logger.info(f"game reset: {gameid}")

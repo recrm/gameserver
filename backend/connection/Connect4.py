@@ -1,116 +1,144 @@
-from . import core, udebs_config
+from . import core, udebs_config, data
 
-class Connect4_core(core.Connection):
+special_data = data.results
+for i in list(special_data.keys()):
+    special_data[tuple(reversed(i))] = special_data[i]
+
+
+class Connect4Core(core.Connection):
     def legalMoves(self):
         player = "xPlayer" if self.time % 2 == 0 else "oPlayer"
         for x in range(self.map["map"].x):
             yield player, (x, 0), "drop"
 
+    @staticmethod
+    def win_heuristic(map_, token, loc):
+        token = {token, "empty"}
+        maxim = 0
+        x, y = loc[0], loc[1]
+        for x_, y_ in ((1, 0), (0, 1), (1, 1), (1, -1)):
+            sto = ["x"]
+            for _ in (None, None):
+                try:
+                    cx, cy = x + x_, y + y_
+                    while map_[cx, cy] in token:
+                        sto.append("_" if map_[cx, cy] == "empty" else "x")
+                        cx, cy = cx + x_, cy + y_
+                except IndexError:
+                    pass
+
+                sto = list(reversed(sto))
+                x_ *= -1
+                y_ *= -1
+
+            maxim += special_data.get(tuple(sto), 0)
+
+        return maxim
+
     def legalMoves2(self, map_):
-        token = "x" if map_.playerx else "o"
-        other = ("o" if token == "x" else "x")
+        yield map_.scored // 2
 
+        token, other = ("x", "o") if map_.playerx else ("o", "x")
         options = []
-        forced = None
-        backup = None
-
-        stones = len(map_) - map_.time
-
-        # First yield score of surrender
-        yield int(stones / 2)
+        forced = False
 
         for x in range(map_.x):
-            y = udebs_config.BOTTOM(map_, x)
-            if y is not None:
-                loc = (x, y)
-                position = token, loc, "drop"
+            for y in range(map_.y - 1, -1, -1):
+                if map_[x, y] == "empty":
+                    break
+            else:
+                continue
 
-                # First check if we win here.
-                win_me = udebs_config.win(map_, token, loc)
-                if win_me >= self.win_cond:
-                    yield -int((stones + 1) / 2)
+            loc = (x, y)
+
+            if udebs_config.win(map_, other, loc) >= self.win_cond:
+                if forced:
                     return
 
-                if forced is None:
-                    win_you = udebs_config.win(map_, other, loc)
-                    if win_you >= self.win_cond:
-                        # we are in check, must play here
-                        forced = position
-                        continue
+                options = []
+                forced = loc
 
-                    if y > 0:
-                        above_you = udebs_config.win(map_, other, (x, y - 1))
-                        if above_you >= self.win_cond:
-                            # We cannot play here unless it is our only option
-                            backup = int((stones + 2) / 2)
-                            continue
+            if not forced or forced == loc:
+                if y > 0 and udebs_config.win(map_, other, (x, y - 1)) >= self.win_cond:
+                    # We cannot play here unless it is our only option
+                    if forced:
+                        return
+                else:
+                    options.append(loc)
 
-                    # finally these are our only good options
-                    options.append((
-                        *position,
-                        win_me,
-                    ))
+        # Lower bound optimization magic
+        if len(options) > 0 and not forced:
+            if map_.scored >= 2:
+                yield (map_.scored - 2) // 2
+        # end magic
 
-        if forced:
-            yield forced
-            return
-        elif len(options) == 0:
-            yield backup if backup else 0
-            return
+        if len(options) > 1:
+            def heuristic(row):
+                return (
+                    -self.win_heuristic(map_, token, row),
+                    abs(map_.const - row[0])
+                )
 
-        huristic = lambda x: (x[3], -abs(((map_.x - 1) / 2) - x[1][0]))
-        yield from sorted(options, key=huristic, reverse=True)
+            options = sorted(options, key=heuristic)
 
-    #---------------------------------------------------
+        for loc in options:
+            yield token, loc
+
+    # ---------------------------------------------------
     #                 Main Symmetries                  -
-    #---------------------------------------------------
-    def hash(self, map_):
+    # ---------------------------------------------------
+    @staticmethod
+    def hash(map_):
         mappings = {
             "empty": "0",
             "x": "1",
             "o": "2",
         }
 
-        data = []
+        current = []
         sym = []
         for y in range(map_.y):
-            buf = [mappings[map_[x,y]] for x in range(map_.x)]
-            data.extend(buf)
+            buf = [mappings[map_[x, y]] for x in range(map_.x)]
+            current.extend(buf)
             sym.extend(reversed(buf))
 
-        return min(int("".join(data), 3), int("".join(sym), 3))
+        return min(int("".join(current), 3), int("".join(sym), 3))
 
-#---------------------------------------------------
+
+# ---------------------------------------------------
 #                 Managers                         -
-#---------------------------------------------------
+# ---------------------------------------------------
 class Connect4_4x4(core.ConnectionManager):
     x = 4
     y = 4
-    maxsize = 2**14 # ~ 2 MB
+    maxsize = 2 ** 14  # ~ 2 MB
     type = "Connect4"
-    field=Connect4_core
+    field = Connect4Core
     win_cond = 4
+
 
 class Connect4_5x4(core.ConnectionManager):
     x = 5
     y = 4
-    maxsize = 2**18 # ~ 32 MB
+    maxsize = 2 ** 18  # ~ 32 MB
     type = "Connect4"
-    field=Connect4_core
+    field = Connect4Core
     win_cond = 4
+
 
 class Connect4_5x5(core.ConnectionManager):
     x = 5
     y = 5
-    maxsize = 2**22 # ~ 512MB
+    maxsize = 2 ** 22  # ~ 512MB
     type = "Connect4"
-    field=Connect4_core
+    field = Connect4Core
     win_cond = 4
+
 
 class Connect4_6x5(core.ConnectionManager):
     x = 6
     y = 5
-    maxsize = 2**22 # ~ 512MB
+    maxsize = 2 ** 22  # ~ 512MB
     type = "Connect4"
-    field=Connect4_core
+    field = Connect4Core
     win_cond = 4

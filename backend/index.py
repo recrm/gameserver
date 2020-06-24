@@ -20,6 +20,7 @@ for manager in managers:
 if CORS:
     CORS(app)
 
+
 @app.before_first_request
 def setup_logging():
     """Sets up the system for appropriate logging."""

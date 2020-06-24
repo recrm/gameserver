@@ -1,36 +1,40 @@
 import pathlib
+from collections import OrderedDict
+
 import udebs
 
 config = pathlib.Path(__file__).parent / "config.xml"
 
+
 @udebs.register(["$1", "$2"])
 def BOTTOM(map_, x):
-    for y in range(map_.y -1, -1, -1):
+    for y in range(map_.y - 1, -1, -1):
         if map_[(x, y)] == "empty":
             return y
 
+
 def win(map_, token, loc):
-    maxim = 0
+    maxim = 1
+    x, y = loc[0], loc[1]
+    for x_, y_ in ((1, 0), (0, 1), (1, 1), (1, -1)):
+        count = 1
+        for _ in (None, None):
+            try:
+                cx, cy = x + x_, y + y_
+                while token is map_[cx, cy]:
+                    count += 1
+                    cx, cy = cx + x_, cy + y_
+            except IndexError:
+                pass
 
-    for x_, y_ in ((1,0), (0,1), (1,1), (1, -1)):
-        count = -1
-        for d_ in (1, -1):
-            x_ *= d_
-            y_ *= d_
-
-            new, centre = token, loc
-            while new == token:
-                count +=1
-                centre = centre[0] + x_, centre[1] + y_
-                try:
-                    new = map_[centre]
-                except IndexError:
-                    break
+            x_ *= -1
+            y_ *= -1
 
         if count > maxim:
             maxim = count
 
     return maxim
+
 
 @udebs.register(["self", "$1", "$2", "$3"])
 def ENDSTATE(state, map_, token, loc):
@@ -44,11 +48,12 @@ def ENDSTATE(state, map_, token, loc):
 
     return 0
 
+
 @udebs.register(["self", "$1"])
 def COMPUTER(state, player):
     # Get all possible replies.
-    children = [(e, -i.result()) for i, e in state.substates()]
-
+    storage = OrderedDict()
+    children = [(e, -i.result(-1, 1, storage)) for i, e in state.substates()]
     replies = []
     for _i in (1, 0, -1):
         for entry, value in children:
