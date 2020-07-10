@@ -90,7 +90,7 @@ class Connect4Core(core.Connection):
     #                 Main Symmetries                  -
     # ---------------------------------------------------
     @staticmethod
-    def hash(map_):
+    def hash2(map_):
         mappings = {
             "empty": "0",
             "x": "1",

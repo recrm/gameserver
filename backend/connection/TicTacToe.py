@@ -48,7 +48,8 @@ class TicTacToe(Connection):
     # ---------------------------------------------------
     #                 Main Symmetries                  -
     # ---------------------------------------------------
-    def hash(self, map_):
+    @staticmethod
+    def hash2(map_):
         """Return an immutable representation of a game map."""
         mappings = {
             "empty": "0",

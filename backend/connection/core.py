@@ -63,7 +63,7 @@ def connect4_cache(f, maxsize=2 ** 20):
             nonlocal storage
             storage = new_storage
 
-        key = self.hash(map_)
+        key = self.hash2(map_)
 
         a_, b_ = storage.get(key, empty)
         if a_ > alpha:
@@ -81,7 +81,7 @@ def connect4_cache(f, maxsize=2 ** 20):
         if alpha >= beta:
             # Note: Alpha and beta may not be the same.
             # Returning either will produce the right answer, but
-            # it is unclear which is more effecient.
+            # it is unclear which is more efficient.
             if key in storage:
                 storage.move_to_end(key)
             return alpha
@@ -104,13 +104,23 @@ def connect4_cache(f, maxsize=2 ** 20):
 
 
 class Connection(udebs.State, ABC):
+    def hash(self):
+        return None
+
+    def __init__(self, *args, **kwargs):
+        self.start_book = None
+        self.win_cond = None
+        self.storage = OrderedDict()
+
+        super().__init__(*args, **kwargs)
+
     # ---------------------------------------------------
     #                 Solver Code                      -
     # ---------------------------------------------------
     def result(self, alpha=None, beta=None, storage=None):
         map_ = self.getMap().copy()
 
-        key = self.hash(map_)
+        key = self.hash2(map_)
         if key in self.start_book:
             return self.start_book[key]
 
