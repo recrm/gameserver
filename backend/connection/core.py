@@ -161,6 +161,7 @@ class Connection(udebs.State, ABC):
         new = map_.copy()
         new.playerx = not map_.playerx
         new[loc] = token
+        new.const = map_.const
         new.time = map_.time + 1
         new.scored = map_.scored - 1
         return new
