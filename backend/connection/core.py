@@ -133,7 +133,7 @@ class Connection(udebs.State, ABC):
         map_.time = self.time
         computed = None
         if self.value is not None:
-            computed = -(map_.scored + 1) // 2
+            computed = self.value if self.value == 0 else -(map_.scored + 1) // 2
         else:
             # We have to check if we are one turn away from victory
             for player, loc, move in self.legalMoves():
@@ -142,7 +142,7 @@ class Connection(udebs.State, ABC):
                     computed = (map_.scored + 1) // 2
                     break
 
-        if computed:
+        if computed is not None:
             if alpha and computed < alpha:
                 return alpha
             elif beta and computed > beta:
