@@ -10,3 +10,6 @@ frontend/node_modules/*
 /.idea/inspectionProfiles/Project_Default.xml
 /.idea/dictionaries/ryan.xml
 /.idea/vcs.xml
+
+*/.idea/*
+*/udebs/*
