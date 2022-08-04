@@ -14,3 +14,6 @@ frontend/node_modules/*
 */.idea/*
 */udebs/*
 .idea/*
+
+*/node_modules/*
+*/build/*
