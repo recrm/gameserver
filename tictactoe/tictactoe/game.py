@@ -1,5 +1,6 @@
-from udebs import register, Instance
 import functools
+
+from udebs import register, Instance
 
 
 # Setup Udebs
@@ -233,7 +234,7 @@ def start_game():
             {
                 "name": "placement",
                 "require": [
-                    "$caster.STAT.ACT &gt;= 2",
+                    "$caster.STAT.ACT >= 2",
                     "$target.NAME == empty",
                     "VAR.value == None",
                 ],
