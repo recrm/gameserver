@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <script type="text/javascript" src="static/brython.js"></script>
+    <script type="text/javascript" src="static/brython_modules.js"></script>
+    <title>Conway's Game of Life</title>
+    <link rel="stylesheet" href="static/game.css">
+</head>
+
+<body onload="brython(1)">
+<script type="text/python">
+from life import app
+</script>
+
+<div class="game-board">
+    <div class="game-grid"></div>
+    <div class="game-controls">
+        <label for="speed">speed</label>
+        <label for="seed">seed</label>
+        <div class="break"></div>
+        <input type="number" id="speed" value="10">
+        <input type="number" id="seed" value="600">
+        <div class="break"></div>
+        <button id="pause" class="game-button">Pause</button>
+        <button id="reset" class="game-button">Reset</button>
+        <div class="break"></div>
+        <button id="left" class="game-button"><<</button>
+        <button id="right" class="game-button">&gt;&gt;</button>
+
+    </div>
+</div>
+
+</body>
+
+</html>

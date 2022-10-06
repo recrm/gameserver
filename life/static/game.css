@@ -1,0 +1,64 @@
+.game-board {
+    width: 300px;
+}
+
+.game-grid {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+}
+
+.game-row {
+    display: flex;
+}
+
+.game-square {
+    flex: 1 0 auto;
+    background: #fff;
+    margin-right: -1px;
+    margin-top: -1px;
+    border: 1px solid #999;
+    position: relative;
+    padding: 0;
+}
+
+.alive {
+    background: #007000;
+}
+
+.dead {
+    background: white;
+}
+
+.game-square:after {
+    content: "";
+    float: left;
+    padding-top: 100%;
+}
+
+.game-controls {
+    display: flex;
+    width: 100%;
+    font-size: smaller;
+    text-align: center;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.game-controls * {
+    width: 30%;
+    margin: 2px 5px 0px 5px;
+}
+
+.game-controls .break {
+    flex-basis: 100%;
+}
+
+.game-controls button {
+    border: 1px solid #999;
+    border-radius: 5px;
+    padding: 0;
+    /*width: 25%;*/
+    height: 2.5em;
+}
+

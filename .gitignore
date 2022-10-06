@@ -17,3 +17,5 @@ frontend/node_modules/*
 
 */node_modules/*
 build/*
+brython_stdlib.js
+brython.js
