@@ -1,0 +1,10 @@
+{
+  "files": {
+    "main.js": "/tournament/static/js/main.016bab75.js",
+    "index.html": "/tournament/index.html",
+    "main.016bab75.js.map": "/tournament/static/js/main.016bab75.js.map"
+  },
+  "entrypoints": [
+    "static/js/main.016bab75.js"
+  ]
+}

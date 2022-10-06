@@ -5,7 +5,7 @@ from udebs import register, Instance
 
 # Setup Udebs
 @register(["self"])
-def ENDSTATE(state):
+def endstate(state):
     def rows(game_map):
         """Iterate over possible win conditions in game map."""
         size = len(game_map)
@@ -56,7 +56,7 @@ def win(map_, token, loc):
     return maxim
 
 
-def alpha_beta_cache(f, maxsize=2 ** 20):
+def alpha_beta_cache(f):
     empty = (-float("inf"), float("inf"))
 
     @functools.wraps(f)
@@ -210,7 +210,7 @@ def start_game():
             {
                 "name": "tick",
                 "require": [
-                    "score = (ENDSTATE)",
+                    "score = (endstate)",
                     "$score != None",
                 ],
                 "effect": "EXIT $score",
