@@ -1,0 +1,5 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://game.ak-rc.net/sitemap.xml
+
