@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Feh Text Formatter</title>
+    <script>
+        const keywords = new Map([
+            ["Accelerates Special trigger (cooldown count-1).", "【Slaying】"],
+            ["At start of turn, if unit is adjacent to only beast or dragon allies or if unit is not adjacent to any ally, unit transforms (otherwise, unit reverts).", "【Beast】"],
+            ["If foe's Range = 2, calculates damage using the lower of foe's Def or Res.", "【Dragon】"]
+        ]);
+
+        let definitions = new Map();
+
+        function split_blocks(text) {
+            let effects = [];
+
+            let blocks = text.split("\n").reverse();
+
+            while (blocks.length > 0) {
+                let block = blocks.pop().trim();
+
+                if (block.length > 0) {
+                    if (block.substring(0, 1) === "【") {
+                        let def_text = blocks.pop().trim();
+                        if (block.includes("Canto")) {
+                            def_text += (blocks.pop() + blocks.pop());
+                        }
+                        definitions.set(block, def_text);
+                    } else {
+                        effects.push(block);
+                    }
+                }
+            }
+            return [effects.join(" "), definitions]
+        }
+
+        function split_effects(text) {
+            let effects = text.split(/(?<=\.) |(?<=\..) /).reverse();
+
+            let final = [];
+
+            while (effects.length > 0) {
+                let effect = effects.pop();
+                while (effects.length > 0 && effect.includes("(") && !effect.includes(")")) {
+                    effect += " " + effects.pop();
+                }
+
+                if (effect.substring(effect.length - 5) === "etc.)") {
+                    effect += " " + effects.pop();
+                }
+
+                let keyword_name = keywords.get(effect);
+                if (keyword_name !== undefined) {
+                    final.unshift(keyword_name);
+                    definitions.set(keyword_name, effect);
+                } else {
+                    final.push(effect);
+                }
+            }
+
+            return final;
+        }
+
+        function split_sub_effects(text) {
+            let sub_effects = text.split(/(?<=[,:;]) |(?<=,\") /).reverse();
+
+            let effects = [];
+            while (sub_effects.length > 0) {
+                let effect = sub_effects.pop();
+                while (sub_effects.length > 0 && effect.includes("(") && !effect.includes(")")) {
+                    effect += (" " + sub_effects.pop());
+                }
+
+                if (effect.substring(0, 4) === "and ") {
+                    effect = effect.slice(4);
+                }
+
+                if (effect !== "also,") {
+                    effects.push(effect);
+                }
+            }
+
+            return effects;
+        }
+
+        function onClick() {
+            let textarea = document.getElementById("skill-input");
+            let blocks = split_blocks(textarea.value);
+            let string = "";
+
+            split_effects(blocks[0]).forEach(x => {
+                let semi = false;
+                let indent = 0;
+                split_sub_effects(x).forEach(y => {
+                    console.log(y);
+
+                    if (y.substring(0, 1) === "(" && y.substring(y.length - 1, y.length) === ")") {
+                        console.log(y);
+                        string = string.slice(0, -8);
+                        string += " <a class='clarification'>" + y + "</a></p>";
+                        return;
+                    }
+
+                    let is_if = (y.substring(0, 2).toLowerCase() === "if")
+
+                    if (semi && is_if) {
+                        indent -= 1;
+                    }
+
+                    string += ["<p style='text-indent: ", indent.toString(), "em'>", y, "</p>"].join("");
+                    if (is_if || y.includes(":") || y === "At start of combat," || y === "At start of turn," || indent == 0) {
+                        indent += 1;
+                        if (y.includes(":")) {
+                            indent += 1;
+                            semi = true;
+                        }
+                    }
+                })
+                string += "<br>";
+            })
+
+            string = string.replaceAll("【", "<a class='definition' onmouseout='offHover()'>【")
+            string = string.replaceAll("】", "】</a>")
+            let display = document.getElementById("skill-text");
+            display.innerHTML = string;
+
+            document.querySelectorAll(".definition").forEach(item => {
+                item.addEventListener("mouseover", onHover);
+            });
+        }
+
+        function onHover(event) {
+            let popup = document.getElementById("popup");
+            popup.innerText = definitions.get(event.target.innerText);
+            popup.style.visibility = "visible";
+            popup.style.top = (event.target.offsetTop + event.target.offsetHeight).toString() + "px";
+            popup.style.left = (event.target.offsetLeft + event.target.offsetWidth).toString() + "px";
+        }
+
+        function offHover() {
+            document.getElementById("popup").style.visibility = "hidden";
+        }
+
+
+    </script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+        }
+
+        a.definition {
+            color: brown;
+            cursor: help;
+        }
+
+        body {
+            margin: 0.5em;
+        }
+
+        #popup {
+            visibility: hidden;
+            position: absolute;
+            border: 1px solid black;
+            padding: 1em;
+            max-width: 300px;
+            background: white;
+        }
+
+        #controls {
+            margin-right: 1em;
+            text-align: center;
+        }
+
+        button {
+            height: 20px;
+            padding: 0.75em 0.5em;
+            line-height: 0;
+            font-size: 1em;
+        }
+
+        textarea {
+            padding: 1em;
+            border: 1px solid black;
+            margin-bottom: 10px;
+        }
+
+        div.flexbox {
+            display: flex;
+            flex-direction: row;
+            flex-wrap: wrap;
+        }
+
+        #skill-text {
+            padding: 1em;
+            border: 1px solid black;
+            min-width: 500px;
+        }
+
+        #skill-text p {
+            padding-bottom: 0.5em;
+        }
+
+    </style>
+</head>
+<body>
+
+<h1>Feh Text Formatter</h1>
+
+<div id="popup">hello</div>
+<div class="flexbox">
+    <div id="controls">
+        <label for="skill-input"></label>
+        <textarea rows="40" cols="40" placeholder="Paste skill text here." id="skill-input">Accelerates Special trigger (cooldown count-1). At start of combat, if unit's HP ≥ 25%, inflicts Atk/Def-6 on foe during combat and unit and foe both cannot make a follow-up attack, and also, if unit initiates combat while transformed, grants another action to unit after combat. (Once per turn.) At start of turn, if unit is adjacent to only beast or dragon allies or if unit is not adjacent to any ally, unit transforms (otherwise, unit reverts). If unit transforms, grants Atk+2 and unit can counterattack regardless of foe's range.</textarea>
+        <br>
+        <button onclick="onClick()">Format Text!!</button>
+    </div>
+    <div id="skill-text">
+        <p>Skill info will appear here.</p>
+    </div>
+</div>
+
+</body>
+</html>

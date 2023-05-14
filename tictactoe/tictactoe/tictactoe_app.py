@@ -52,9 +52,9 @@ def update(state, field, storage):
 
 
 def init(state, field, storage):
-    for x in range(3):
-        for y in range(3):
-            state["squares"][(x, y)] = {
+    for x_ in range(3):
+        for y_ in range(3):
+            state["squares"][(x_, y_)] = {
                 "token": "empty",
                 "hint": None,
             }
@@ -74,7 +74,7 @@ init(main_state, main_map, main_storage)
 
 
 @bind(document["reset"], "click")
-def click_reset(event):
+def click_reset(__):
     main_map.resetState()
     update(main_state, main_map, main_storage)
 
@@ -89,7 +89,7 @@ def move_next(event):
 
 
 @bind(document["undo"], "click")
-def click_undo(event):
+def click_undo(__):
     global main_map
     new = main_map.getRevert(1)
     if new:
@@ -104,7 +104,7 @@ def switch_hide(event):
 
 
 @bind(document["ai"], "click")
-def click_ai(event):
+def click_ai(__):
     data = {}
 
     for move in main_map.legalMoves():
