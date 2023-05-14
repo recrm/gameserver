@@ -6,8 +6,12 @@
     <script>
         const keywords = new Map([
             ["Accelerates Special trigger (cooldown count-1).", "【Slaying】"],
-            ["At start of turn, if unit is adjacent to only beast or dragon allies or if unit is not adjacent to any ally, unit transforms (otherwise, unit reverts).", "【Beast】"],
-            ["If foe's Range = 2, calculates damage using the lower of foe's Def or Res.", "【Dragon】"]
+            ["At start of turn, if unit is adjacent to only beast or dragon allies or if unit is not adjacent to any ally, unit transforms (otherwise, unit reverts). If unit transforms, grants Atk+2 and unit can counterattack regardless of foe's range.", "【Beast (Armour)】"],
+            ["At start of turn, if unit is adjacent to only beast or dragon allies or if unit is not adjacent to any ally, unit transforms (otherwise, unit reverts). If unit transforms, unit can move 1 extra space. (That turn only. Does not stack.) If unit transforms, grants Atk+2.", "【Beast (Flying)】"],
+            ["At start of turn, if unit is adjacent to only beast or dragon allies or if unit is not adjacent to any ally, unit transforms (otherwise, unit reverts). If unit transforms, grants Atk+2 and deals +10 damage when Special triggers.", "【Beast (Infantry)】"],
+            ["At start of turn, if unit is adjacent to only beast or dragon allies or if unit is not adjacent to any ally, unit transforms (otherwise, unit reverts). If unit transforms, grants Atk+2, deals +7 damage when Special triggers, and neutralizes effects that grant \"Special cooldown charge +X\" to foe or inflict \"Special cooldown charge -X\" on unit.", "【Beast (Alt-Infantry)】"],
+            ["At start of turn, if unit is adjacent to only beast or dragon allies or if unit is not adjacent to any ally, unit transforms (otherwise, unit reverts). If unit transforms, grants Atk+2, and if unit initiates combat, inflicts Atk/Def-4 on foe during combat and foe cannot make a follow-up attack.", "【Beast (Calvary)】"],
+            ["If foe's Range = 2, calculates damage using the lower of foe's Def or Res.", "【Dragon】"],
         ]);
 
         let definitions = new Map();
@@ -38,7 +42,7 @@
         function split_effects(text) {
             let effects = text.split(/(?<=\.) |(?<=\..) /).reverse();
 
-            let final = [];
+            let processed_effects = [];
 
             while (effects.length > 0) {
                 let effect = effects.pop();
@@ -50,14 +54,40 @@
                     effect += " " + effects.pop();
                 }
 
-                let keyword_name = keywords.get(effect);
-                if (keyword_name !== undefined) {
-                    final.unshift(keyword_name);
-                    definitions.set(keyword_name, effect);
-                } else {
-                    final.push(effect);
-                }
+                processed_effects.push(effect);
             }
+
+            // Detect keywords
+            // processed_effects = processed_effects.reverse();
+            let final = [];
+            processed_effects.forEach((elem, index) => {
+                keywords.forEach((word, effect) => {
+                    let string = elem;
+                    let new_index = index + 1;
+
+                    while (effect.includes(string + " " + processed_effects[new_index])) {
+                        string += " " + processed_effects[new_index];
+                        new_index += 1;
+                    }
+
+                    let key = keywords.get(string);
+                    if (key !== undefined) {
+                        processed_effects[index] = key;
+                        definitions.set(key, string);
+                        while ((new_index - 1) != index) {
+                            processed_effects[new_index - 1] = undefined;
+                            new_index -= 1;
+                        }
+                    }
+                });
+
+                let new_elem = processed_effects[index];
+                if (definitions.get(new_elem) !== undefined) {
+                    final.unshift(new_elem);
+                } else if (new_elem !== undefined) {
+                    final.push(new_elem);
+                }
+            });
 
             return final;
         }
@@ -93,10 +123,7 @@
                 let semi = false;
                 let indent = 0;
                 split_sub_effects(x).forEach(y => {
-                    console.log(y);
-
                     if (y.substring(0, 1) === "(" && y.substring(y.length - 1, y.length) === ")") {
-                        console.log(y);
                         string = string.slice(0, -8);
                         string += " <a class='clarification'>" + y + "</a></p>";
                         return;
@@ -148,6 +175,7 @@
         * {
             margin: 0;
             padding: 0;
+            font-size: 12px;
         }
 
         a.definition {
